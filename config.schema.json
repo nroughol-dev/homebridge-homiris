@@ -8,6 +8,12 @@
     "type": "object",
     "required": ["login", "password"],
     "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "default": "SepsadSecurity",
+        "description": "The name that appears in the Homebridge log"
+      },
       "login": {
         "title": "Sepsad/Homiris account login",
         "type": "string"
