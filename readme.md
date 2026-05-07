@@ -21,10 +21,10 @@ Alarm activation is also **disabled by default** and must be explicitly enabled 
 ## Installation
 
 ```
-npm install -g homebridge-homiris
+npm install -g @nroughol/homebridge-homiris
 ```
 
-Or search for `homebridge-homiris` in the Homebridge UI plugins tab.
+Or search for `@nroughol/homebridge-homiris` in the Homebridge UI plugins tab.
 
 ## Configuration
 
@@ -56,7 +56,7 @@ Or search for `homebridge-homiris` in the Homebridge UI plugins tab.
 ### Migrating from homebridge-sepsadsecurity
 
 1. Uninstall the old plugin: `npm uninstall -g homebridge-sepsadsecurity`
-2. Install this plugin: `npm install -g homebridge-homiris`
+2. Install this plugin: `npm install -g @nroughol/homebridge-homiris`
 3. The `platform` name in your config stays `"SepsadSecurity"` -- no config change needed
 4. If you had `"originSession": "SEPSAD"` and have a Homiris system, change it to `"HOMIRIS"`
 
