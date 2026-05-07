@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.0 — Forked as homebridge-homiris
+
+Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-sepsadSecurity) by Nicolas Dujardin.
+
+- [FIX] Add missing `User-Agent`, `Eps-Ctx-Source`, `Eps-Ctx-Username` headers to all API calls (fixes broken communication since mid-2024)
+- [FIX] Export `UNKNOWN` constant (was silently breaking operation timeout logic)
+- [FIX] Smoke sensor refresh now compares `.value` instead of Characteristic objects
+- [FIX] Remove reference to undefined `result` variable in error log
+- [FIX] Align `maxWaitTimeForOperation` default with schema (30s, was 20s)
+- [NEW] Homebridge v2.0 and v1.11 support (`getServiceById` replaces removed `getServiceByUUIDAndSubType`)
+- [NEW] `originSession` defaults to `HOMIRIS` with dropdown for `HOMIRIS` / `SEPSAD` / `EPS`
+- [NEW] Zero runtime dependencies — replaced deprecated `request` with native `fetch()`, removed `locks`
+- [CHANGE] Background refresh disabled by default, minimum raised to 120s to avoid Homiris rate limiting
+- [CHANGE] Requires Node.js >= 18, Homebridge >= 1.6.0
+
 ## 0.2.1
 
 - [FIX] no more id in result, so system status was wrong.
