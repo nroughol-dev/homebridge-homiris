@@ -1,6 +1,6 @@
 {
   "name": "@nroughol/homebridge-homiris",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "author": "Nicolas Roughol",
   "description": "Homebridge plugin for Homiris / Sepsad / EPS alarm systems",
   "main": "index.js",

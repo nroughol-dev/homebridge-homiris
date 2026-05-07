@@ -246,41 +246,6 @@ class SepsadSecurityAPI extends EventEmitter {
 
     this.log.debug('INFO - activateSecuritySystem success');
   }
-
-  deactivateSecuritySystem(callback) {
-    this._deactivateSecuritySystem()
-      .then(function () {
-        callback(false);
-      })
-      .catch(function () {
-        callback(true);
-      });
-  }
-
-  async _deactivateSecuritySystem() {
-    await this.authenticate();
-
-    var jsonBody = {
-      idSession: this.idSession,
-      silentMode: false,
-    };
-
-    var response = await fetch(this.apiURL + 'smartphone/production/1.0.0/system/askstop', {
-      method: 'POST',
-      headers: this._apiHeaders(),
-      body: JSON.stringify(jsonBody),
-    });
-
-    if (!response.ok) {
-      var body = await response.text().catch(function () {
-        return '';
-      });
-      this.log('ERROR - deactivateSecuritySystem response (' + response.status + '): ' + body);
-      throw new Error('Deactivate failed');
-    }
-
-    this.log.debug('INFO - deactivateSecuritySystem success');
-  }
 }
 
 module.exports = {

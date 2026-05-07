@@ -549,40 +549,7 @@ mySepsadSecurityPlatform.prototype = {
     callback();
 
     if (currentState != value) {
-      if (value == Characteristic.SecuritySystemTargetState.DISARM) {
-        this.log.debug(
-          'INFO - SET Characteristic.SecuritySystemTargetState - ' +
-            service.subtype +
-            ' - requesting DISARM'
-        );
-
-        this.sepsadSecurityAPI.deactivateSecuritySystem(function (error) {
-          if (error) {
-            that.endSecuritySystemOperation(service);
-            that.log.debug(
-              'ERROR - SET Characteristic.SecuritySystemTargetState - ' +
-                service.subtype +
-                ' error deactivating '
-            );
-
-            setTimeout(() => {
-              service
-                .getCharacteristic(Characteristic.SecuritySystemTargetState)
-                .updateValue(currentValue);
-              service
-                .getCharacteristic(Characteristic.SecuritySystemCurrentState)
-                .updateValue(currentState);
-            }, 500);
-          } else {
-            that.beginSecuritySystemOperation(service, value);
-            that.log.debug(
-              'INFO - SET Characteristic.SecuritySystemTargetState - ' +
-                service.subtype +
-                ' success deactivating '
-            );
-          }
-        });
-      } else if (this.allowActivation) {
+      if (value < Characteristic.SecuritySystemTargetState.DISARM && this.allowActivation) {
         this.log.debug(
           'INFO - SET Characteristic.SecuritySystemTargetState - ' +
             service.subtype +

@@ -2,10 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.3.3
+## 0.3.4
 
-- [NEW] Disarm support via HomeKit — always allowed, no config needed
-- [FIX] Activation endpoint was missing `smartphone/production/1.0.0/` prefix (404 on arm)
+- [REVERT] Removed disarm support — Homiris API requires biometric device authentication for sensitive actions, which cannot be replicated outside the official app
 
 ## 0.3.2
 

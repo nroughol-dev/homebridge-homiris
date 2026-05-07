@@ -6,9 +6,8 @@ Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-se
 
 ## What's new
 
-### 0.3.3
-- Added disarm support via HomeKit (always allowed, no config needed)
-- Fixed activation endpoint (was returning 404)
+### 0.3.4
+- Reverted disarm support — Homiris API requires biometric device auth for sensitive actions
 
 ### 0.3.2
 - Fixed activation endpoint: was missing `smartphone/production/1.0.0/` prefix
@@ -25,7 +24,7 @@ Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-se
 
 ## Important
 
-**Disarming** the alarm via HomeKit is always allowed.
+**Disarming the alarm via this plugin is not possible.** The Homiris API requires biometric device authentication for disarming, which cannot be replicated outside the official app. Attempting to disarm via HomeKit will be silently ignored.
 
 **Arming** is **disabled by default** and must be explicitly enabled via `allowActivation`.
 
