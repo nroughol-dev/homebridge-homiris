@@ -4,8 +4,12 @@ Homebridge plugin for [Homiris](https://www.homiris.com/), [Sepsad](https://www.
 
 Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-sepsadSecurity) by Nicolas Dujardin, which is no longer maintained. This version fixes the broken API communication, removes deprecated dependencies, and adds Homebridge v2.0 support.
 
-## What's new in 0.3.0
+## What's new
 
+### 0.3.1
+- Fixed accessory registration using the old plugin name, which caused "no loaded plugin could be found" warnings
+
+### 0.3.0
 - **Fixed API compatibility** -- the Homiris/EPS API started requiring `User-Agent` and other headers on all requests; the original plugin only sent them on login
 - **Homebridge v2.0 + v1.11 support** -- replaced removed `getServiceByUUIDAndSubType()` API
 - **Zero runtime dependencies** -- replaced deprecated `request` library with native `fetch()`, removed `locks`

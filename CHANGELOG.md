@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.1
+
+- [FIX] Accessory registration used old plugin name `homebridge-sepsadsecurity`, causing "no loaded plugin could be found" warnings
+
 ## 0.3.0 — Forked as homebridge-homiris
 
 Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-sepsadSecurity) by Nicolas Dujardin.
