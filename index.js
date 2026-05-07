@@ -6,7 +6,7 @@ const HomirisConst = require('./homirisConst');
 
 function myHomirisPlatform(log, config, api) {
   if (!config) {
-    log('No configuration found for @nroughol/homebridge-homiris');
+    log('No configuration found for homebridge-homiris');
     return;
   }
 
@@ -61,7 +61,7 @@ function myHomirisPlatform(log, config, api) {
         if (this.cleanCache) {
           this.log('WARNING - Removing Accessories');
           this.api.unregisterPlatformAccessories(
-            '@nroughol/homebridge-homiris',
+            'homebridge-homiris',
             'SepsadSecurity',
             this.foundAccessories
           );
@@ -114,7 +114,7 @@ myHomirisPlatform.prototype = {
 
     if (accstoRemove.length > 0)
       this.api.unregisterPlatformAccessories(
-        '@nroughol/homebridge-homiris',
+        'homebridge-homiris',
         'SepsadSecurity',
         accstoRemove
       );
@@ -220,7 +220,7 @@ myHomirisPlatform.prototype = {
           .setCharacteristic(Characteristic.Model, mySecuritySystemAccessory.model)
           .setCharacteristic(Characteristic.SerialNumber, mySecuritySystemAccessory.serialNumber);
 
-        this.api.registerPlatformAccessories('@nroughol/homebridge-homiris', 'SepsadSecurity', [
+        this.api.registerPlatformAccessories('homebridge-homiris', 'SepsadSecurity', [
           mySecuritySystemAccessory,
         ]);
 
@@ -292,7 +292,7 @@ myHomirisPlatform.prototype = {
             .setCharacteristic(Characteristic.Model, mySmokeSensorAccessory.model)
             .setCharacteristic(Characteristic.SerialNumber, mySmokeSensorAccessory.serialNumber);
 
-          this.api.registerPlatformAccessories('@nroughol/homebridge-homiris', 'SepsadSecurity', [
+          this.api.registerPlatformAccessories('homebridge-homiris', 'SepsadSecurity', [
             mySmokeSensorAccessory,
           ]);
 
@@ -367,7 +367,7 @@ myHomirisPlatform.prototype = {
             .setCharacteristic(Characteristic.Model, myTempSensorAccessory.model)
             .setCharacteristic(Characteristic.SerialNumber, myTempSensorAccessory.serialNumber);
 
-          this.api.registerPlatformAccessories('@nroughol/homebridge-homiris', 'SepsadSecurity', [
+          this.api.registerPlatformAccessories('homebridge-homiris', 'SepsadSecurity', [
             myTempSensorAccessory,
           ]);
 
