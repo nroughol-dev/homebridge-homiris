@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.3
+
+- [NEW] Disarm support via HomeKit — always allowed, no config needed
+- [FIX] Activation endpoint was missing `smartphone/production/1.0.0/` prefix (404 on arm)
+
+## 0.3.2
+
+- [FIX] Activation endpoint path corrected (missing API version prefix)
+
 ## 0.3.1
 
 - [FIX] Accessory registration used old plugin name `homebridge-sepsadsecurity`, causing "no loaded plugin could be found" warnings
