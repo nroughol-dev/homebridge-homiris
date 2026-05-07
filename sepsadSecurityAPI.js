@@ -230,7 +230,7 @@ class SepsadSecurityAPI extends EventEmitter {
       systemMode: mode,
     };
 
-    var response = await fetch(this.apiURL + 'system/askstart/', {
+    var response = await fetch(this.apiURL + 'smartphone/production/1.0.0/system/askstart', {
       method: 'POST',
       headers: this._apiHeaders(),
       body: JSON.stringify(jsonBody),

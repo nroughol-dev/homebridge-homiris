@@ -1,5 +1,5 @@
-const ACTIVATE_COMMAND = '/control/start/';
-const STOP_COMMAND = '/control/park/duration/timer';
+const ACTIVATE_COMMAND = 'smartphone/production/1.0.0/system/askstart';
+const STOP_COMMAND = 'smartphone/production/1.0.0/system/askstop';
 const ACTIVATED = 'TOTAL';
 const PARTIAL = 'PARTIAL';
 const DISABLED = 'OFF';
