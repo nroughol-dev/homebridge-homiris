@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 
-class SepsadSecurityAPI extends EventEmitter {
+class HomirisAPI extends EventEmitter {
   constructor(log, platform) {
     super();
 
@@ -249,5 +249,5 @@ class SepsadSecurityAPI extends EventEmitter {
 }
 
 module.exports = {
-  SepsadSecurityAPI: SepsadSecurityAPI,
+  HomirisAPI: HomirisAPI,
 };

@@ -1,10 +1,10 @@
 var Service, Characteristic, Accessory, UUIDGen;
 
-var SepsadSecurityAPI = require('./sepsadSecurityAPI.js').SepsadSecurityAPI;
-const SepsadSecurityTools = require('./sepsadSecurityTools.js');
-const SepsadSecurityConst = require('./sepsadSecurityConst');
+var HomirisAPI = require('./homirisAPI.js').HomirisAPI;
+const HomirisTools = require('./homirisTools.js');
+const HomirisConst = require('./homirisConst');
 
-function mySepsadSecurityPlatform(log, config, api) {
+function myHomirisPlatform(log, config, api) {
   if (!config) {
     log('No configuration found for @nroughol/homebridge-homiris');
     return;
@@ -16,16 +16,16 @@ function mySepsadSecurityPlatform(log, config, api) {
   this.password = config['password'];
 
   this.refreshTimer = config['refreshTimer']
-    ? SepsadSecurityTools.checkParameter(config['refreshTimer'], 120, 3600, 300)
+    ? HomirisTools.checkParameter(config['refreshTimer'], 120, 3600, 300)
     : 0;
 
-  this.refreshTimerDuringOperation = SepsadSecurityTools.checkParameter(
+  this.refreshTimerDuringOperation = HomirisTools.checkParameter(
     config['refreshTimerDuringOperation'],
     2,
     15,
     5
   );
-  this.maxWaitTimeForOperation = SepsadSecurityTools.checkParameter(
+  this.maxWaitTimeForOperation = HomirisTools.checkParameter(
     config['maxWaitTimeForOperation'],
     30,
     90,
@@ -33,12 +33,12 @@ function mySepsadSecurityPlatform(log, config, api) {
   );
   this.originSession = config['originSession'] || 'HOMIRIS';
 
-  this.allowActivation = SepsadSecurityTools.checkBoolParameter(config['allowActivation'], false);
+  this.allowActivation = HomirisTools.checkBoolParameter(config['allowActivation'], false);
 
   this.cleanCache = config['cleanCache'];
 
   this.foundAccessories = [];
-  this.sepsadSecurityAPI = new SepsadSecurityAPI(log, this);
+  this.homirisAPI = new HomirisAPI(log, this);
 
   this.loaded = false;
   this.tempLoaded = false;
@@ -77,10 +77,10 @@ module.exports = function (homebridge) {
   Characteristic = homebridge.hap.Characteristic;
   Accessory = homebridge.platformAccessory;
   UUIDGen = homebridge.hap.uuid;
-  homebridge.registerPlatform('SepsadSecurity', mySepsadSecurityPlatform);
+  homebridge.registerPlatform('SepsadSecurity', myHomirisPlatform);
 };
 
-mySepsadSecurityPlatform.prototype = {
+myHomirisPlatform.prototype = {
   configureAccessory: function (accessory) {
     this.log.debug(accessory.displayName, 'Got cached Accessory ' + accessory.UUID);
 
@@ -147,19 +147,19 @@ mySepsadSecurityPlatform.prototype = {
   },
 
   discoverSecuritySystem: function () {
-    this.sepsadSecurityAPI.on('securitySystemRefreshError', () => {
+    this.homirisAPI.on('securitySystemRefreshError', () => {
       if (this.timerID == undefined) {
         this.log('ERROR - securitySystemRefreshError - will retry in 1 minute');
         setTimeout(() => {
-          this.sepsadSecurityAPI.getSecuritySystem();
+          this.homirisAPI.getSecuritySystem();
         }, 60000);
       }
     });
 
-    this.sepsadSecurityAPI.on('securitySystemRefreshed', () => {
+    this.homirisAPI.on('securitySystemRefreshed', () => {
       this.log.debug('INFO - securitySystemRefreshed event');
       this.log.debug(
-        'INFO - SecuritySystem : ' + JSON.stringify(this.sepsadSecurityAPI.securitySystem)
+        'INFO - SecuritySystem : ' + JSON.stringify(this.homirisAPI.securitySystem)
       );
 
       if (!this.loaded) {
@@ -169,20 +169,20 @@ mySepsadSecurityPlatform.prototype = {
       }
     });
 
-    this.sepsadSecurityAPI.on('securitySystemTemperatureRefreshError', () => {
+    this.homirisAPI.on('securitySystemTemperatureRefreshError', () => {
       if (this.timerID == undefined) {
         this.log('ERROR - securitySystemTemperatureRefreshError - will retry in 1 minute');
         setTimeout(() => {
-          this.sepsadSecurityAPI.getSecuritySystem();
+          this.homirisAPI.getSecuritySystem();
         }, 60000);
       }
     });
 
-    this.sepsadSecurityAPI.on('securitySystemTemperatureRefreshed', () => {
+    this.homirisAPI.on('securitySystemTemperatureRefreshed', () => {
       this.log.debug('INFO - securitySystemTemperatureRefreshed event');
       this.log.debug(
         'INFO - securitySystemTemperature : ' +
-          JSON.stringify(this.sepsadSecurityAPI.securitySystem.temperatureInfo)
+          JSON.stringify(this.homirisAPI.securitySystem.temperatureInfo)
       );
 
       if (!this.tempLoaded) {
@@ -192,14 +192,14 @@ mySepsadSecurityPlatform.prototype = {
       }
     });
 
-    this.sepsadSecurityAPI.getSecuritySystem();
+    this.homirisAPI.getSecuritySystem();
   },
 
   createSecuritySystemAccessory() {
-    if (this.sepsadSecurityAPI.securitySystem.security) {
-      let securitySystemName = this.sepsadSecurityAPI.securitySystem.name;
-      let securitySystemModel = this.sepsadSecurityAPI.securitySystem.model;
-      let securitySystemSeriaNumber = this.sepsadSecurityAPI.securitySystem.id;
+    if (this.homirisAPI.securitySystem.security) {
+      let securitySystemName = this.homirisAPI.securitySystem.name;
+      let securitySystemModel = this.homirisAPI.securitySystem.model;
+      let securitySystemSeriaNumber = this.homirisAPI.securitySystem.id;
 
       this.log('INFO - Discovered SecuritySystem : ' + securitySystemName);
 
@@ -210,7 +210,7 @@ mySepsadSecurityPlatform.prototype = {
         mySecuritySystemAccessory = new Accessory(securitySystemName, uuid);
         mySecuritySystemAccessory.name = securitySystemName;
         mySecuritySystemAccessory.model = securitySystemModel;
-        mySecuritySystemAccessory.manufacturer = 'Sepsad/EPS';
+        mySecuritySystemAccessory.manufacturer = 'Homiris/Sepsad/EPS';
         mySecuritySystemAccessory.serialNumber = securitySystemSeriaNumber;
         mySecuritySystemAccessory.securitySystemID = securitySystemSeriaNumber;
 
@@ -263,14 +263,14 @@ mySepsadSecurityPlatform.prototype = {
   },
 
   createSmokeSensorsAccessories() {
-    if (this.sepsadSecurityAPI.securitySystem.fire) {
-      let smokeDetectors = this.sepsadSecurityAPI.securitySystem.fire.smokeDetectors;
+    if (this.homirisAPI.securitySystem.fire) {
+      let smokeDetectors = this.homirisAPI.securitySystem.fire.smokeDetectors;
 
       for (let a = 0; a < smokeDetectors.length; a++) {
         let smokeSensorName = smokeDetectors[a].label;
-        let smokeSensorModel = this.sepsadSecurityAPI.securitySystem.model;
+        let smokeSensorModel = this.homirisAPI.securitySystem.model;
         let smokeSensorSeriaNumber =
-          this.sepsadSecurityAPI.securitySystem.id + '/' + smokeDetectors[a].id;
+          this.homirisAPI.securitySystem.id + '/' + smokeDetectors[a].id;
 
         this.log('INFO - Discovered SmokeSensor : ' + smokeSensorName);
 
@@ -282,7 +282,7 @@ mySepsadSecurityPlatform.prototype = {
           mySmokeSensorAccessory = new Accessory(smokeSensorName, uuid);
           mySmokeSensorAccessory.name = smokeSensorName;
           mySmokeSensorAccessory.model = smokeSensorModel;
-          mySmokeSensorAccessory.manufacturer = 'Sepsad/EPS';
+          mySmokeSensorAccessory.manufacturer = 'Homiris/Sepsad/EPS';
           mySmokeSensorAccessory.serialNumber = smokeSensorSeriaNumber;
           mySmokeSensorAccessory.smokeSensorID = smokeDetectors[a].id;
 
@@ -339,13 +339,13 @@ mySepsadSecurityPlatform.prototype = {
   },
 
   createTemperatureSensorsAccessories() {
-    if (this.sepsadSecurityAPI.securitySystem.temperatureInfo) {
-      let tempSensors = this.sepsadSecurityAPI.securitySystem.temperatureInfo;
+    if (this.homirisAPI.securitySystem.temperatureInfo) {
+      let tempSensors = this.homirisAPI.securitySystem.temperatureInfo;
       for (let a = 0; a < tempSensors.length; a++) {
         let tempSensorName = tempSensors[a].label;
-        let tempSensorModel = this.sepsadSecurityAPI.securitySystem.model;
+        let tempSensorModel = this.homirisAPI.securitySystem.model;
         let tempSensorSeriaNumber =
-          this.sepsadSecurityAPI.securitySystem.id + '/' + tempSensors[a].id;
+          this.homirisAPI.securitySystem.id + '/' + tempSensors[a].id;
 
         this.log('INFO - Discovered TemperatureSensor : ' + tempSensorName);
 
@@ -357,7 +357,7 @@ mySepsadSecurityPlatform.prototype = {
           myTempSensorAccessory = new Accessory(tempSensorName, uuid);
           myTempSensorAccessory.name = tempSensorName;
           myTempSensorAccessory.model = tempSensorModel;
-          myTempSensorAccessory.manufacturer = 'Sepsad/EPS';
+          myTempSensorAccessory.manufacturer = 'Homiris/Sepsad/EPS';
           myTempSensorAccessory.serialNumber = tempSensorSeriaNumber;
           myTempSensorAccessory.tempSensorID = tempSensors[a].id;
 
@@ -420,14 +420,14 @@ mySepsadSecurityPlatform.prototype = {
   },
 
   loadSecuritySystem() {
-    if (this.sepsadSecurityAPI.securitySystem.systemLastState) {
+    if (this.homirisAPI.securitySystem.systemLastState) {
       this.createSecuritySystemAccessory();
       this.createSmokeSensorsAccessories();
       if (
-        this.sepsadSecurityAPI.securitySystem.temperature &&
-        this.sepsadSecurityAPI.securitySystem.temperature.nbActiveDevices > 0
+        this.homirisAPI.securitySystem.temperature &&
+        this.homirisAPI.securitySystem.temperature.nbActiveDevices > 0
       ) {
-        this.sepsadSecurityAPI.getTemperature();
+        this.homirisAPI.getTemperature();
       } else {
         this.cleanPlatform();
       }
@@ -443,7 +443,7 @@ mySepsadSecurityPlatform.prototype = {
       );
 
       setTimeout(() => {
-        this.sepsadSecurityAPI.getSecuritySystem();
+        this.homirisAPI.getSecuritySystem();
       }, 60000);
     }
   },
@@ -452,16 +452,16 @@ mySepsadSecurityPlatform.prototype = {
     for (let a = 0; a < this.foundAccessories.length; a++) {
       if (
         this.foundAccessories[a].securitySystemID &&
-        this.sepsadSecurityAPI.securitySystem.systemLastState
+        this.homirisAPI.securitySystem.systemLastState
       ) {
         this.log.debug('INFO - refreshing securit System- ' + this.foundAccessories[a].name);
 
         let securitySystemResult = undefined;
         if (
-          this.sepsadSecurityAPI.securitySystem &&
-          this.sepsadSecurityAPI.securitySystem.id == this.foundAccessories[a].securitySystemID
+          this.homirisAPI.securitySystem &&
+          this.homirisAPI.securitySystem.id == this.foundAccessories[a].securitySystemID
         ) {
-          securitySystemResult = this.sepsadSecurityAPI.securitySystem.systemLastState;
+          securitySystemResult = this.homirisAPI.securitySystem.systemLastState;
         }
 
         if (securitySystemResult !== undefined) {
@@ -475,7 +475,7 @@ mySepsadSecurityPlatform.prototype = {
       } else if (this.foundAccessories[a].smokeSensorID) {
         this.log.debug('INFO - refreshing smokeSensor - ' + this.foundAccessories[a].name);
 
-        let smokeResults = this.sepsadSecurityAPI.securitySystem.fire;
+        let smokeResults = this.homirisAPI.securitySystem.fire;
         if (smokeResults !== undefined) {
           this.refreshSmokeSensor(this.foundAccessories[a], smokeResults);
         } else {
@@ -492,11 +492,11 @@ mySepsadSecurityPlatform.prototype = {
     for (let a = 0; a < this.foundAccessories.length; a++) {
       if (
         this.foundAccessories[a].tempSensorID &&
-        this.sepsadSecurityAPI.securitySystem.temperatureInfo
+        this.homirisAPI.securitySystem.temperatureInfo
       ) {
         this.log.debug('INFO - refreshing temp Sensor - ' + this.foundAccessories[a].name);
 
-        let tempResults = this.sepsadSecurityAPI.securitySystem.temperatureInfo;
+        let tempResults = this.homirisAPI.securitySystem.temperatureInfo;
         var tempSensorResult = undefined;
 
         for (let b = 0; b < tempResults.length; b++) {
@@ -522,7 +522,7 @@ mySepsadSecurityPlatform.prototype = {
     callback(undefined, service.getCharacteristic(Characteristic.SecuritySystemCurrentState).value);
     //no operationInProgress, refresh current state
     if (service.TargetSecuritySystemStateOperationStart == undefined) {
-      this.sepsadSecurityAPI.getSecuritySystem();
+      this.homirisAPI.getSecuritySystem();
     }
 
     // Characteristic.SecuritySystemCurrentState.STAY_ARM = 0;
@@ -554,19 +554,19 @@ mySepsadSecurityPlatform.prototype = {
           'INFO - SET Characteristic.SecuritySystemTargetState - ' +
             service.subtype +
             ' - SecuritySystemCurrentState is ' +
-            this.sepsadSecurityAPI.getStateString(currentState)
+            this.homirisAPI.getStateString(currentState)
         );
 
-        let mode = SepsadSecurityConst.DISABLED;
+        let mode = HomirisConst.DISABLED;
         if (value == Characteristic.SecuritySystemTargetState.AWAY_ARM)
-          mode = SepsadSecurityConst.ACTIVATED;
+          mode = HomirisConst.ACTIVATED;
         else if (
           value == Characteristic.SecuritySystemTargetState.STAY_ARM ||
           value == Characteristic.SecuritySystemTargetState.NIGHT_ARM
         )
-          mode = SepsadSecurityConst.PARTIAL;
+          mode = HomirisConst.PARTIAL;
 
-        this.sepsadSecurityAPI.activateSecuritySystem(mode, function (error) {
+        this.homirisAPI.activateSecuritySystem(mode, function (error) {
           if (error) {
             that.endSecuritySystemOperation(service);
             that.log.debug(
@@ -608,7 +608,7 @@ mySepsadSecurityPlatform.prototype = {
 
   getCurrentTemperatureCharacteristic: function (service, callback) {
     callback(undefined, service.getCharacteristic(Characteristic.CurrentTemperature).value);
-    this.sepsadSecurityAPI.getTemperature();
+    this.homirisAPI.getTemperature();
   },
 
   getSmokeDetectedCharacteristic: function (service, callback) {
@@ -616,7 +616,7 @@ mySepsadSecurityPlatform.prototype = {
 
     //no operationInProgress, refresh current state
     if (service.TargetSecuritySystemStateOperationStart == undefined) {
-      this.sepsadSecurityAPI.getSecuritySystem();
+      this.homirisAPI.getSecuritySystem();
     }
   },
 
@@ -699,7 +699,7 @@ mySepsadSecurityPlatform.prototype = {
     );
 
     this.timerID = setInterval(() => {
-      this.sepsadSecurityAPI.getSecuritySystem();
+      this.homirisAPI.getSecuritySystem();
     }, this.refreshTimerDuringOperation * 1000);
   },
 
@@ -742,11 +742,11 @@ mySepsadSecurityPlatform.prototype = {
   },
 
   operationMode(result) {
-    if (result.securityMode == SepsadSecurityConst.DISABLED) {
+    if (result.securityMode == HomirisConst.DISABLED) {
       return Characteristic.SecuritySystemCurrentState.DISARMED;
-    } else if (result.securityMode == SepsadSecurityConst.ACTIVATED) {
+    } else if (result.securityMode == HomirisConst.ACTIVATED) {
       return Characteristic.SecuritySystemCurrentState.AWAY_ARM;
-    } else if (result.securityMode == SepsadSecurityConst.PARTIAL) {
+    } else if (result.securityMode == HomirisConst.PARTIAL) {
       return Characteristic.SecuritySystemCurrentState.NIGHT_ARM;
     } else {
       return -1;
@@ -760,16 +760,16 @@ mySepsadSecurityPlatform.prototype = {
         'INFO - Setting Timer for background refresh every  : ' + this.refreshTimer + 's'
       );
       this.timerID = setInterval(
-        () => this.sepsadSecurityAPI.getSecuritySystem(),
+        () => this.homirisAPI.getSecuritySystem(),
         this.refreshTimer * 1000
       );
     }
   },
 
-  refreshSecuritySystem: function (mySepsadSecurityAccessory, result) {
-    let securitySystemName = mySepsadSecurityAccessory.name;
+  refreshSecuritySystem: function (myHomirisAccessory, result) {
+    let securitySystemName = myHomirisAccessory.name;
 
-    let HKSecurityService = mySepsadSecurityAccessory.getServiceById(
+    let HKSecurityService = myHomirisAccessory.getServiceById(
       Service.SecuritySystem,
       'SecuritySystemService' + securitySystemName
     );
@@ -837,7 +837,7 @@ mySepsadSecurityPlatform.prototype = {
           ' updating TargetState to : ' +
           newTargetState +
           '-' +
-          this.sepsadSecurityAPI.getStateString(newTargetState)
+          this.homirisAPI.getStateString(newTargetState)
       );
       //TargetState before CurrentState
 
@@ -853,7 +853,7 @@ mySepsadSecurityPlatform.prototype = {
         'INFO - refreshSecuritySystem - ' +
           HKSecurityService.subtype +
           ' updating CurrenState to : ' +
-          this.sepsadSecurityAPI.getStateString(newSecurityServiceState)
+          this.homirisAPI.getStateString(newSecurityServiceState)
       );
       setImmediate(() => {
         HKSecurityService.getCharacteristic(Characteristic.SecuritySystemCurrentState).updateValue(
@@ -931,7 +931,7 @@ mySepsadSecurityPlatform.prototype = {
 
   endOperation(service, result) {
     // TODO CHECK CHECK
-    if (this.operationMode(result) == SepsadSecurityConst.UNKNOWN) return true;
+    if (this.operationMode(result) == HomirisConst.UNKNOWN) return true;
 
     //timeout
 
