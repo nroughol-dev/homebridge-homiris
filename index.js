@@ -15,7 +15,9 @@ function mySepsadSecurityPlatform(log, config, api) {
   this.login = config['login'];
   this.password = config['password'];
 
-  this.refreshTimer = SepsadSecurityTools.checkParameter(config['refreshTimer'], 30, 600, 180);
+  this.refreshTimer = config['refreshTimer']
+    ? SepsadSecurityTools.checkParameter(config['refreshTimer'], 120, 3600, 300)
+    : 0;
 
   this.refreshTimerDuringOperation = SepsadSecurityTools.checkParameter(
     config['refreshTimerDuringOperation'],
@@ -27,9 +29,9 @@ function mySepsadSecurityPlatform(log, config, api) {
     config['maxWaitTimeForOperation'],
     30,
     90,
-    20
+    30
   );
-  this.originSession = config['originSession'] ? config['originSession'] : 'SEPSAD';
+  this.originSession = config['originSession'] || 'HOMIRIS';
 
   this.allowActivation = SepsadSecurityTools.checkBoolParameter(config['allowActivation'], false);
 
@@ -75,13 +77,7 @@ module.exports = function (homebridge) {
   Characteristic = homebridge.hap.Characteristic;
   Accessory = homebridge.platformAccessory;
   UUIDGen = homebridge.hap.uuid;
-  HomebridgeAPI = homebridge;
-  homebridge.registerPlatform(
-    'homebridge-sepsadsecurity',
-    'SepsadSecurity',
-    mySepsadSecurityPlatform,
-    true
-  );
+  homebridge.registerPlatform('SepsadSecurity', mySepsadSecurityPlatform);
 };
 
 mySepsadSecurityPlatform.prototype = {
@@ -234,8 +230,8 @@ mySepsadSecurityPlatform.prototype = {
       mySecuritySystemAccessory.securitySystemID = securitySystemSeriaNumber;
       mySecuritySystemAccessory.name = securitySystemName;
 
-      let HKSecurityService = mySecuritySystemAccessory.getServiceByUUIDAndSubType(
-        securitySystemName,
+      let HKSecurityService = mySecuritySystemAccessory.getServiceById(
+        Service.SecuritySystem,
         'SecuritySystemService' + securitySystemName
       );
 
@@ -306,8 +302,8 @@ mySepsadSecurityPlatform.prototype = {
         mySmokeSensorAccessory.smokeSensorID = smokeDetectors[a].id;
         mySmokeSensorAccessory.name = smokeSensorName;
 
-        let HKSmokeSensorService = mySmokeSensorAccessory.getServiceByUUIDAndSubType(
-          smokeSensorName,
+        let HKSmokeSensorService = mySmokeSensorAccessory.getServiceById(
+          Service.SmokeSensor,
           'SmokeSensorService' + smokeSensorName
         );
 
@@ -381,8 +377,8 @@ mySepsadSecurityPlatform.prototype = {
         myTempSensorAccessory.tempSensorID = tempSensors[a].id;
         myTempSensorAccessory.name = tempSensorName;
 
-        let HKTempSensorService = myTempSensorAccessory.getServiceByUUIDAndSubType(
-          tempSensorName,
+        let HKTempSensorService = myTempSensorAccessory.getServiceById(
+          Service.TemperatureSensor,
           'TempSensorService' + tempSensorName
         );
 
@@ -443,8 +439,7 @@ mySepsadSecurityPlatform.prototype = {
       this.refreshBackground();
     } else {
       this.log(
-        'ERROR - discoverSecuritySystem - no security system found, will retry in 1 minute - ' +
-          result
+        'ERROR - discoverSecuritySystem - no security system found, will retry in 1 minute'
       );
 
       setTimeout(() => {
@@ -774,8 +769,8 @@ mySepsadSecurityPlatform.prototype = {
   refreshSecuritySystem: function (mySepsadSecurityAccessory, result) {
     let securitySystemName = mySepsadSecurityAccessory.name;
 
-    let HKSecurityService = mySepsadSecurityAccessory.getServiceByUUIDAndSubType(
-      securitySystemName,
+    let HKSecurityService = mySepsadSecurityAccessory.getServiceById(
+      Service.SecuritySystem,
       'SecuritySystemService' + securitySystemName
     );
 
@@ -871,8 +866,8 @@ mySepsadSecurityPlatform.prototype = {
   refreshTempSensor: function (myTempAccessory, result) {
     let tempSensorName = myTempAccessory.name;
 
-    let HKTempSensorService = myTempAccessory.getServiceByUUIDAndSubType(
-      tempSensorName,
+    let HKTempSensorService = myTempAccessory.getServiceById(
+      Service.TemperatureSensor,
       'TempSensorService' + tempSensorName
     );
 
@@ -891,8 +886,8 @@ mySepsadSecurityPlatform.prototype = {
 
   refreshSmokeSensor: function (mySmokeAccessory, result) {
     let smokeSensorName = mySmokeAccessory.name;
-    let HKSmokeSensorService = mySmokeAccessory.getServiceByUUIDAndSubType(
-      smokeSensorName,
+    let HKSmokeSensorService = mySmokeAccessory.getServiceById(
+      Service.SmokeSensor,
       'SmokeSensorService' + smokeSensorName
     );
 
@@ -901,7 +896,7 @@ mySepsadSecurityPlatform.prototype = {
       return;
     }
 
-    let currentStatus = HKSmokeSensorService.getCharacteristic(Characteristic.StatusActive);
+    let currentStatus = HKSmokeSensorService.getCharacteristic(Characteristic.StatusActive).value;
     let newStatus = result.fireStatus == 'ON';
 
     if (currentStatus != newStatus)
@@ -926,7 +921,7 @@ mySepsadSecurityPlatform.prototype = {
       );
       return;
     } else {
-      let currentSmokeStatus = HKSmokeSensorService.getCharacteristic(Characteristic.SmokeDetected);
+      let currentSmokeStatus = HKSmokeSensorService.getCharacteristic(Characteristic.SmokeDetected).value;
       if (currentSmokeStatus != newSmokeStatus)
         HKSmokeSensorService.getCharacteristic(Characteristic.SmokeDetected).updateValue(
           newSmokeStatus

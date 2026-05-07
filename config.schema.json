@@ -2,24 +2,29 @@
   "pluginAlias": "SepsadSecurity",
   "pluginType": "platform",
   "singular": false,
-  "headerDisplay": "This plugin is provided by [nicoduj](https://github.com/nicoduj/)",
-  "footerDisplay": "Support via [paypal](https://www.paypal.me/nicoduj/).",
+  "headerDisplay": "This plugin is provided by [nroughol-dev](https://github.com/nroughol-dev/), forked from [nicoduj](https://github.com/nicoduj/)",
+  "footerDisplay": "",
   "schema": {
     "type": "object",
-    "required": ["login", "password", "originSession"],
+    "required": ["login", "password"],
     "properties": {
       "login": {
-        "title": "Sepsad account login",
+        "title": "Sepsad/Homiris account login",
         "type": "string"
       },
       "password": {
-        "title": "Sepsad account password",
+        "title": "Sepsad/Homiris account password",
         "type": "string"
       },
       "originSession": {
-        "title": "Alarm type - originSession",
+        "title": "Alarm system brand",
         "type": "string",
-        "default": "SEPSAD"
+        "default": "HOMIRIS",
+        "oneOf": [
+          { "title": "Homiris", "enum": ["HOMIRIS"] },
+          { "title": "Sepsad", "enum": ["SEPSAD"] },
+          { "title": "EPS", "enum": ["EPS"] }
+        ]
       },
       "allowActivation": {
         "title": "Allow alarm activation",
@@ -27,12 +32,11 @@
         "default": false
       },
       "refreshTimer": {
-        "title": "Refresh timer",
+        "title": "Refresh timer (seconds)",
         "type": "integer",
-        "default": 0,
-        "minimum": 30,
-        "maximum": 600,
-        "description": "Enable refresh of security System state every X seconds, for automation purpose if you need to activate something else based on a state change of the system by another means than homekit. Be aware it might make a lot of request since the plugin will ask its status very often :)"
+        "minimum": 120,
+        "maximum": 3600,
+        "description": "Refresh alarm state every X seconds. Leave empty to disable. Minimum 120s to avoid rate limiting by Homiris servers."
       },
       "maxWaitTimeForOperation": {
         "title": "Maximum wait time during operation",

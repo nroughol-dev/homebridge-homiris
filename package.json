@@ -1,8 +1,8 @@
 {
-  "name": "homebridge-sepsadsecurity",
-  "version": "0.2.1",
-  "author": "Nicolas Dujardin",
-  "description": "Publish your sepsad security system as an homekit accessory",
+  "name": "homebridge-homiris",
+  "version": "0.3.0",
+  "author": "Nicolas Roughol",
+  "description": "Homebridge plugin for Homiris / Sepsad / EPS alarm systems",
   "main": "index.js",
   "scripts": {
     "test": "node index.js && echo \"No syntax errors! (node $(node -v))\""
@@ -10,28 +10,26 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nicoduj/homebridge-sepsadsecurity.git"
+    "url": "git+https://github.com/nroughol-dev/homebridge-homiris.git"
   },
   "engines": {
-    "homebridge": ">=0.4.50",
-    "node": ">=10.20.0"
+    "homebridge": "^1.6.0 || ^2.0.0",
+    "node": "^18.0.0 || ^20.0.0 || ^22.0.0 || ^24.0.0"
   },
   "keywords": [
     "homebridge-plugin",
+    "homiris",
     "sepsad",
     "alarm",
     "security",
     "EPS",
     "homekit"
   ],
-  "dependencies": {
-    "locks": "^0.2.2",
-    "request": "^2.88.2"
-  },
+  "dependencies": {},
   "bugs": {
-    "url": "https://github.com/nicoduj/homebridge-sepsadsecurity/issues"
+    "url": "https://github.com/nroughol-dev/homebridge-homiris/issues"
   },
-  "homepage": "https://github.com/nicoduj/homebridge-sepsadsecurity#readme",
+  "homepage": "https://github.com/nroughol-dev/homebridge-homiris#readme",
   "devDependencies": {
     "husky": "^3.1.0",
     "prettier": "2.0.0",
@@ -48,14 +46,5 @@
       "pre-commit": "pretty-quick --staged"
     }
   },
-  "funding": [
-    {
-      "type": "github",
-      "url": "https://github.com/sponsors/nicoduj/"
-    },
-    {
-      "type": "paypal",
-      "url": "https://www.paypal.me/nicoduj/"
-    }
-  ]
+  "funding": []
 }

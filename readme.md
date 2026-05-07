@@ -1,85 +1,80 @@
-# homebridge-sepsadsecurity
+# homebridge-homiris
 
-[![npm](https://img.shields.io/npm/v/homebridge-sepsadsecurity.svg)](https://www.npmjs.com/package/homebridge-sepsadsecurity)
-[![npm](https://img.shields.io/npm/dw/homebridge-sepsadsecurity.svg)](https://www.npmjs.com/package/homebridge-sepsadsecurity)
-[![npm](https://img.shields.io/npm/dt/homebridge-sepsadsecurity.svg)](https://www.npmjs.com/package/homebridge-sepsadsecurity)
+Homebridge plugin for [Homiris](https://www.homiris.com/), [Sepsad](https://www.sepsad-telesurveillance.fr), and [EPS](https://www.eps.fr/) alarm systems. Exposes your alarm panel, smoke detectors, and temperature sensors to Apple HomeKit.
 
-[![CodeFactor](https://www.codefactor.io/repository/github/nicoduj/homebridge-sepsadsecurity/badge)](https://www.codefactor.io/repository/github/nicoduj/homebridge-sepsadsecurity)
-[![Build Status](https://travis-ci.com/nicoduj/homebridge-sepsadsecurity.svg?branch=master)](https://travis-ci.com/nicoduj/homebridge-sepsadsecurity)
-[![Known Vulnerabilities](https://snyk.io/test/github/nicoduj/homebridge-sepsadsecurity/badge.svg?targetFile=package.json)](https://snyk.io/test/github/nicoduj/homebridge-sepsadsecurity?targetFile=package.json)
+Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-sepsadSecurity) by Nicolas Dujardin, which is no longer maintained. This version fixes the broken API communication, removes deprecated dependencies, and adds Homebridge v2.0 support.
 
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+## What's new in 0.3.0
 
-Plugin for controlling your [sepsad security system](https://www.sepsad-telesurveillance.fr/telesurveillance-integrale.aspx) from [Sepsad](https://www.sepsad-telesurveillance.fr) through [HomeBridge](https://github.com/nfarina/homebridge) .
+- **Fixed API compatibility** -- the Homiris/EPS API started requiring `User-Agent` and other headers on all requests; the original plugin only sent them on login
+- **Homebridge v2.0 + v1.11 support** -- replaced removed `getServiceByUUIDAndSubType()` API
+- **Zero runtime dependencies** -- replaced deprecated `request` library with native `fetch()`, removed `locks`
+- **HOMIRIS origin** -- `originSession` now defaults to `HOMIRIS` (was `SEPSAD`), matching what most current installations use
+- **Safer polling** -- background refresh is disabled by default and minimum interval raised to 120s (Homiris monitors and contacts users who poll too frequently)
 
-Might also work with [EPS] system since they seemed to be using same technical architecture (only rebranding).
+## Important
 
-It was tested on my personnal installation which is nearly 4 years old so might not be working with latest installations ...
+**Deactivating the alarm via this plugin is not possible.** The Homiris/Sepsad API does not support remote disarm. Attempting to disarm via HomeKit will be silently ignored.
 
-**!!!! IMPORTANT !!!**
+Alarm activation is also **disabled by default** and must be explicitly enabled via `allowActivation`.
 
-**PLEASE NOTE THAT SINCE DEACTVATING IS NOT ALLOWED THROUGH API, IT WON'T BE POSSIBLE TO DEACTIVATE THE SYSTEM THROUGH THE PLUGIN / HOMEBRIDGE**
+## Installation
 
-**So defautl option to activate the system is off**
+```
+npm install -g homebridge-homiris
+```
 
-**!!!! IMPORTANT !!!**
+Or search for `homebridge-homiris` in the Homebridge UI plugins tab.
 
-`npm install -g homebridge-sepsadsecurity`
-
-## Homebridge configuration
-
-Config as below:
+## Configuration
 
 ```json
 "platforms": [
   {
     "platform": "SepsadSecurity",
     "login": "123456",
-    "password": "toto",
-    "originSession": "SEPSAD",
-    "allowActivation": false
+    "password": "your-password",
+    "originSession": "HOMIRIS"
   }
 ]
 ```
 
-Fields:
+### Fields
 
-- `platform` must be "HomebridgeSepsadSecurity" (required).
-- `login` login used for your sepsad account (required).
-- `password` password of your sepsad account (required).
-- `originSession` defaults to "SEPSAD". "EPS" was reported to work for EPS system
-- `refreshTimer` Optional - enable refresh of security System state every X seconds, for automation purpose if you need to activate something else based on its state change (defaults : disable, accepted range : 60-3600s).
-- `maxWaitTimeForOperation` Optional - set the maximum time that we wait for operation to complete. When elapsed, check the current State again and updates accordingly. (defaults : 20s, accepted range : 30-90s).
-- `refreshTimerDuringOperation` Optional - set the refresh timer during operation in progress to detect the end of the operation. (defaults : 5s, accepted range : 2-15s).
-- `allowActivation` Optional - set to true if you want to allow activation of the system. **PLEASE READ IMPORTANT NOTE AT THE BEGINNING OF THIS README**
-- `cleanCache` Set it to true in case you want to remove the cached accessory (only those from this plugin). You have to restart homebridge after applying the option. Remove it after restart, otherwise it will be recreated at each startup.
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `platform` | Yes | | Must be `"SepsadSecurity"` |
+| `login` | Yes | | Your Homiris/Sepsad account login |
+| `password` | Yes | | Your Homiris/Sepsad account password |
+| `originSession` | No | `"HOMIRIS"` | `"HOMIRIS"`, `"SEPSAD"`, or `"EPS"` depending on your system brand |
+| `allowActivation` | No | `false` | Set to `true` to allow arming the system via HomeKit |
+| `refreshTimer` | No | disabled | Refresh alarm state every X seconds (120--3600). Leave empty to disable |
+| `maxWaitTimeForOperation` | No | `30` | Max seconds to wait for an arm operation to complete (30--90) |
+| `refreshTimerDuringOperation` | No | `10` | Polling interval in seconds while an arm operation is in progress (2--15) |
+| `cleanCache` | No | `false` | Set to `true` to remove cached accessories on next restart, then remove the option |
 
-## Changelog
+### Migrating from homebridge-sepsadsecurity
 
-See [CHANGELOG][].
+1. Uninstall the old plugin: `npm uninstall -g homebridge-sepsadsecurity`
+2. Install this plugin: `npm install -g homebridge-homiris`
+3. The `platform` name in your config stays `"SepsadSecurity"` -- no config change needed
+4. If you had `"originSession": "SEPSAD"` and have a Homiris system, change it to `"HOMIRIS"`
 
-[changelog]: CHANGELOG.md
+## Exposed accessories
 
-## Inspiration
+- **Security System** -- arm state (Away/Home/Night/Off), mapped from Homiris TOTAL/PARTIAL/OFF modes
+- **Smoke Sensors** -- one per smoke detector reported by your system
+- **Temperature Sensors** -- one per temperature probe (if your system has any)
 
-Many thanks to :
+## Requirements
 
-- every tester / contributor that test, and give feedback in any way !
+- Homebridge >= 1.6.0 (including v2.0)
+- Node.js >= 18
 
-## Donating
+## Credits
 
-Support this project and [others by nicoduj][nicoduj-projects] via [PayPal][paypal-nicoduj].
-
-[![Support via PayPal][paypal-button]][paypal-nicoduj]
-
-[nicoduj-projects]: https://github.com/nicoduj/
-[paypal-button]: https://img.shields.io/badge/Donate-PayPal-green.svg
-[paypal-nicoduj]: https://www.paypal.me/nicoduj/2.50
+Original plugin by [Nicolas Dujardin](https://github.com/nicoduj/).
 
 ## License
 
-As of Dec 01 2018, Nicolas Dujardin has released this repository and its contents to the public domain.
-
-It has been released under the [UNLICENSE][].
-
-[unlicense]: LICENSE
+[UNLICENSE](LICENSE)
