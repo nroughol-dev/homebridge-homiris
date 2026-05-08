@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.8
+
+- [FIX] Transparent re-authentication on `403 SESSION_EXPIREE` — the `idSession` returned by `/connect` expires before the OAuth `access_token`, so requests now detect session expiration, refresh the session, and retry once instead of failing and waiting for the 1-minute retry timer
+
 ## 0.3.4
 
 - [REVERT] Removed disarm support — Homiris API requires biometric device authentication for sensitive actions, which cannot be replicated outside the official app

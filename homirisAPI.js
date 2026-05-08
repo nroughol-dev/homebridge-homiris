@@ -137,18 +137,56 @@ class HomirisAPI extends EventEmitter {
     };
   }
 
+  async _apiCall(pathFn, options) {
+    options = options || {};
+    await this.authenticate();
+
+    var that = this;
+    var doFetch = function () {
+      return fetch(that.apiURL + pathFn(), {
+        method: options.method || 'GET',
+        headers: that._apiHeaders(),
+        body: typeof options.body === 'function' ? options.body() : options.body,
+      });
+    };
+
+    var response = await doFetch();
+
+    if (response.status === 403) {
+      var body = await response.text().catch(function () {
+        return '';
+      });
+      if (body.indexOf('SESSION_EXPIREE') !== -1) {
+        this.log.debug('INFO - session expired, re-authenticating and retrying');
+        this.disconnect();
+        await this.authenticate();
+        return await doFetch();
+      }
+      return {
+        ok: false,
+        status: 403,
+        text: async function () {
+          return body;
+        },
+        json: async function () {
+          return JSON.parse(body);
+        },
+      };
+    }
+
+    return response;
+  }
+
   getSecuritySystem() {
     this._getSecuritySystem().catch(function () {});
   }
 
   async _getSecuritySystem() {
     try {
-      await this.authenticate();
-
-      var response = await fetch(
-        this.apiURL + 'smartphone/production/1.0.0/homepage/' + this.idSession,
-        {method: 'GET', headers: this._apiHeaders()}
-      );
+      var that = this;
+      var response = await this._apiCall(function () {
+        return 'smartphone/production/1.0.0/homepage/' + that.idSession;
+      });
 
       if (!response.ok) {
         var body = await response.text().catch(function () {
@@ -180,14 +218,10 @@ class HomirisAPI extends EventEmitter {
 
   async _getTemperature() {
     try {
-      await this.authenticate();
-
-      var response = await fetch(
-        this.apiURL +
-          'smartphone/production/1.0.0/temperature/followup/last/' +
-          this.idSession,
-        {method: 'GET', headers: this._apiHeaders()}
-      );
+      var that = this;
+      var response = await this._apiCall(function () {
+        return 'smartphone/production/1.0.0/temperature/followup/last/' + that.idSession;
+      });
 
       if (!response.ok) {
         var body = await response.text().catch(function () {
@@ -221,20 +255,23 @@ class HomirisAPI extends EventEmitter {
   }
 
   async _activateSecuritySystem(mode) {
-    await this.authenticate();
-
-    var jsonBody = {
-      idSession: this.idSession,
-      silentMode: false,
-      interventionService: this.securitySystem.procedure === 'INTERVENTION',
-      systemMode: mode,
-    };
-
-    var response = await fetch(this.apiURL + 'smartphone/production/1.0.0/system/askstart', {
-      method: 'POST',
-      headers: this._apiHeaders(),
-      body: JSON.stringify(jsonBody),
-    });
+    var that = this;
+    var response = await this._apiCall(
+      function () {
+        return 'smartphone/production/1.0.0/system/askstart';
+      },
+      {
+        method: 'POST',
+        body: function () {
+          return JSON.stringify({
+            idSession: that.idSession,
+            silentMode: false,
+            interventionService: that.securitySystem.procedure === 'INTERVENTION',
+            systemMode: mode,
+          });
+        },
+      }
+    );
 
     if (!response.ok) {
       var body = await response.text().catch(function () {
