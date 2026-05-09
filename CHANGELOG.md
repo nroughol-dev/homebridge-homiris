@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.9
+
+- [CHANGE] Default `name` in the config schema is now `Homiris` instead of `SepsadSecurity`. This is the log-prefix label shown in Homebridge output (`[Homiris] INFO - …`) — display only. The platform identifier (`"platform": "SepsadSecurity"`) is unchanged for backward compatibility, so existing configs keep working untouched.
+- [DOCS] Readme config example now includes `"name": "Homiris"` and clarifies the `platform` vs `name` distinction.
+
+Existing users who want the new prefix in their logs need to add `"name": "Homiris"` to their platform block in `config.json` (or set it via the Homebridge UI). The schema default only takes effect for fresh installs.
+
 ## 0.3.8
 
 - [FIX] Transparent re-authentication on `403 SESSION_EXPIREE` — the `idSession` returned by `/connect` expires before the OAuth `access_token`, so requests now detect session expiration, refresh the session, and retry once instead of failing and waiting for the 1-minute retry timer

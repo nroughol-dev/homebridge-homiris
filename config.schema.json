@@ -11,8 +11,8 @@
       "name": {
         "title": "Name",
         "type": "string",
-        "default": "SepsadSecurity",
-        "description": "The name that appears in the Homebridge log"
+        "default": "Homiris",
+        "description": "The name that appears in the Homebridge log prefix. Display only — does not affect the platform identifier."
       },
       "login": {
         "title": "Sepsad/Homiris account login",

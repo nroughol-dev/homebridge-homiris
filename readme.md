@@ -6,6 +6,10 @@ Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-se
 
 ## What's new
 
+### 0.3.9
+
+- Default `name` (the log-prefix label) is now `Homiris` instead of `SepsadSecurity`. Display only — `platform` stays `SepsadSecurity` for backward compatibility. To get the new prefix in your existing install's logs, add `"name": "Homiris"` to your `config.json` platform block.
+
 ### 0.3.4
 - Reverted disarm support — Homiris API requires biometric device auth for sensitive actions
 
@@ -42,12 +46,15 @@ Or search for `homebridge-homiris` in the Homebridge UI plugins tab.
 "platforms": [
   {
     "platform": "SepsadSecurity",
+    "name": "Homiris",
     "login": "123456",
     "password": "your-password",
     "originSession": "HOMIRIS"
   }
 ]
 ```
+
+`platform` must remain `"SepsadSecurity"` (the plugin's stable identifier — kept for backward compatibility with existing installs); `name` is just the log-prefix label and can be set freely.
 
 ### Fields
 
