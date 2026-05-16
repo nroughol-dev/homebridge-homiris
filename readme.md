@@ -1,25 +1,36 @@
 # homebridge-homiris
 
+[![verified-by-homebridge](https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=for-the-badge&logoColor=%23FFFFFF&logo=homebridge)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+
 Homebridge plugin for [Homiris](https://www.homiris.com/), [Sepsad](https://www.sepsad-telesurveillance.fr), and [EPS](https://www.eps.fr/) alarm systems. Exposes your alarm panel, smoke detectors, and temperature sensors to Apple HomeKit.
 
 Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-sepsadSecurity) by Nicolas Dujardin, which is no longer maintained. This version fixes the broken API communication, removes deprecated dependencies, and adds Homebridge v2.0 support.
 
 ## What's new
 
+### 0.3.10
+
+- Verified by Homebridge
+- Added a donation link (PayPal) — shown as a ❤️ Donate button on the Homebridge UI tile
+
 ### 0.3.9
 
 - Default `name` (the log-prefix label) is now `Homiris` instead of `SepsadSecurity`. Display only — `platform` stays `SepsadSecurity` for backward compatibility. To get the new prefix in your existing install's logs, add `"name": "Homiris"` to your `config.json` platform block.
 
 ### 0.3.4
+
 - Reverted disarm support — Homiris API requires biometric device auth for sensitive actions
 
 ### 0.3.2
+
 - Fixed activation endpoint: was missing `smartphone/production/1.0.0/` prefix
 
 ### 0.3.1
+
 - Fixed accessory registration using the old plugin name, which caused "no loaded plugin could be found" warnings
 
 ### 0.3.0
+
 - **Fixed API compatibility** -- the Homiris/EPS API started requiring `User-Agent` and other headers on all requests; the original plugin only sent them on login
 - **Homebridge v2.0 + v1.11 support** -- replaced removed `getServiceByUUIDAndSubType()` API
 - **Zero runtime dependencies** -- replaced deprecated `request` library with native `fetch()`, removed `locks`
@@ -58,17 +69,17 @@ Or search for `homebridge-homiris` in the Homebridge UI plugins tab.
 
 ### Fields
 
-| Field | Required | Default | Description |
-|-------|----------|---------|-------------|
-| `platform` | Yes | | Must be `"SepsadSecurity"` |
-| `login` | Yes | | Your Homiris/Sepsad account login |
-| `password` | Yes | | Your Homiris/Sepsad account password |
-| `originSession` | No | `"HOMIRIS"` | `"HOMIRIS"`, `"SEPSAD"`, or `"EPS"` depending on your system brand |
-| `allowActivation` | No | `false` | Set to `true` to allow arming the system via HomeKit |
-| `refreshTimer` | No | disabled | Refresh alarm state every X seconds (120--3600). Leave empty to disable |
-| `maxWaitTimeForOperation` | No | `30` | Max seconds to wait for an arm operation to complete (30--90) |
-| `refreshTimerDuringOperation` | No | `10` | Polling interval in seconds while an arm operation is in progress (2--15) |
-| `cleanCache` | No | `false` | Set to `true` to remove cached accessories on next restart, then remove the option |
+| Field                         | Required | Default     | Description                                                                        |
+| ----------------------------- | -------- | ----------- | ---------------------------------------------------------------------------------- |
+| `platform`                    | Yes      |             | Must be `"SepsadSecurity"`                                                         |
+| `login`                       | Yes      |             | Your Homiris/Sepsad account login                                                  |
+| `password`                    | Yes      |             | Your Homiris/Sepsad account password                                               |
+| `originSession`               | No       | `"HOMIRIS"` | `"HOMIRIS"`, `"SEPSAD"`, or `"EPS"` depending on your system brand                 |
+| `allowActivation`             | No       | `false`     | Set to `true` to allow arming the system via HomeKit                               |
+| `refreshTimer`                | No       | disabled    | Refresh alarm state every X seconds (120--3600). Leave empty to disable            |
+| `maxWaitTimeForOperation`     | No       | `30`        | Max seconds to wait for an arm operation to complete (30--90)                      |
+| `refreshTimerDuringOperation` | No       | `10`        | Polling interval in seconds while an arm operation is in progress (2--15)          |
+| `cleanCache`                  | No       | `false`     | Set to `true` to remove cached accessories on next restart, then remove the option |
 
 ### Migrating from homebridge-sepsadsecurity
 
