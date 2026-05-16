@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.10 — Verified by Homebridge
+
+- [DOCS] Added the `verified-by-homebridge` badge to the README, following verification of the plugin in [homebridge/plugins#1031](https://github.com/homebridge/plugins/pull/1031).
+- [CHANGE] Added a PayPal funding link (`https://paypal.me/nroughol`) to `package.json`. The Homebridge UI now shows a ❤️ Donate button on the plugin's tile.
+
+No runtime code changes — this release is documentation and metadata only.
+
 ## 0.3.9
 
 - [CHANGE] Default `name` in the config schema is now `Homiris` instead of `SepsadSecurity`. This is the log-prefix label shown in Homebridge output (`[Homiris] INFO - …`) — display only. The platform identifier (`"platform": "SepsadSecurity"`) is unchanged for backward compatibility, so existing configs keep working untouched.
