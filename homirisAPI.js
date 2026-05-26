@@ -46,7 +46,9 @@ class HomirisAPI extends EventEmitter {
   async authenticate() {
     var now = new Date();
     if (this.access_token && this.loginExpires && this.loginExpires >= now) {
-      this.log.debug('INFO - already authenticated, expiration: ' + this.loginExpires + ' - ' + now);
+      this.log.debug(
+        'INFO - already authenticated, expiration: ' + this.loginExpires + ' - ' + now
+      );
       return;
     }
 
@@ -99,17 +101,14 @@ class HomirisAPI extends EventEmitter {
       system: '',
     };
 
-    var connectResponse = await fetch(
-      this.apiURL + 'smartphone/production/1.0.0/connect',
-      {
-        method: 'POST',
-        headers: {
-          ...this.baseHeaders,
-          Authorization: 'Bearer ' + this.access_token,
-        },
-        body: JSON.stringify(connectBody),
-      }
-    );
+    var connectResponse = await fetch(this.apiURL + 'smartphone/production/1.0.0/connect', {
+      method: 'POST',
+      headers: {
+        ...this.baseHeaders,
+        Authorization: 'Bearer ' + this.access_token,
+      },
+      body: JSON.stringify(connectBody),
+    });
 
     if (!connectResponse.ok) {
       var body = await connectResponse.text().catch(function () {
@@ -152,19 +151,25 @@ class HomirisAPI extends EventEmitter {
 
     var response = await doFetch();
 
-    if (response.status === 403) {
+    if (response.status === 401 || response.status === 403) {
       var body = await response.text().catch(function () {
         return '';
       });
-      if (body.indexOf('SESSION_EXPIREE') !== -1) {
-        this.log.debug('INFO - session expired, re-authenticating and retrying');
+      var sessionExpired = response.status === 403 && body.indexOf('SESSION_EXPIREE') !== -1;
+      var tokenInvalid = response.status === 401 && body.indexOf('900901') !== -1;
+      if (sessionExpired || tokenInvalid) {
+        this.log.debug(
+          'INFO - ' +
+            (tokenInvalid ? 'access token invalid' : 'session expired') +
+            ', re-authenticating and retrying'
+        );
         this.disconnect();
         await this.authenticate();
         return await doFetch();
       }
       return {
         ok: false,
-        status: 403,
+        status: response.status,
         text: async function () {
           return body;
         },

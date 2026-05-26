@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.11
+
+- [FIX] Transparent re-authentication on `401 Invalid Credentials` (WSO2 code `900901`) — when the OAuth `access_token` is invalidated server-side before its expected expiration (e.g. `getTemperature` failing with `<ams:code>900901</ams:code>`), `_apiCall()` now refreshes the token and replays the request once, in addition to the existing `403 SESSION_EXPIREE` handling.
+- [CHANGE] Hard error responses returned by `_apiCall()` now preserve the actual HTTP status instead of always reporting `403`.
+
 ## 0.3.10 — Verified by Homebridge
 
 - [DOCS] Added the `verified-by-homebridge` badge to the README, following verification of the plugin in [homebridge/plugins#1031](https://github.com/homebridge/plugins/pull/1031).
