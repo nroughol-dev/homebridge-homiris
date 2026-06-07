@@ -8,7 +8,7 @@ Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-se
 
 ## What's new
 
-### 0.4.1
+### 0.4.4
 
 - **Eve temperature history** (optional, `eveHistory`) — temperature sensors get a `fakegato-history` service so the Eve app renders graphs, min/max and weekly summaries. One entry every 10 minutes. Apple Home is unaffected.
 - **Dedicated temperature polling** (`refreshTimerTemperature`, default 2h) — matches the official app's sampling rate instead of hammering the API on the main refresh timer.
