@@ -2,7 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.4.0 — Eve temperature history
+## 0.4.1 — Eve temperature history
+
+Published as 0.4.1: the 0.4.0 version number was burned on npm by an earlier upload that was since unpublished (npm permanently reserves published version numbers).
 
 - [NEW] Optional Eve history for temperature sensors (`eveHistory`, off by default) — temperature sensors expose a [fakegato-history](https://github.com/simont77/fakegato-history) service (`custom` type, signature derived from the sensor's own characteristics, so no foreign characteristic is added and Apple's strict HAP validation stays happy). The Eve app renders graphs, min/max and weekly summaries; Apple Home is unaffected. One history entry is recorded every 10 minutes (fakegato's averaging timer), regardless of the API polling interval.
 - [NEW] Dedicated background refresh timer for temperature sensors (`refreshTimerTemperature`, default 7200s, 0 to disable) — the official Homiris app only samples temperature every 2 hours, so temperature polls on its own much slower timer instead of the main `refreshTimer`.
