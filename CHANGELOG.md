@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.0 — Eve temperature history
+
+- [NEW] Optional Eve history for temperature sensors (`eveHistory`, off by default) — temperature sensors expose a [fakegato-history](https://github.com/simont77/fakegato-history) service (`custom` type, signature derived from the sensor's own characteristics, so no foreign characteristic is added and Apple's strict HAP validation stays happy). The Eve app renders graphs, min/max and weekly summaries; Apple Home is unaffected. One history entry is recorded every 10 minutes (fakegato's averaging timer), regardless of the API polling interval.
+- [NEW] Dedicated background refresh timer for temperature sensors (`refreshTimerTemperature`, default 7200s, 0 to disable) — the official Homiris app only samples temperature every 2 hours, so temperature polls on its own much slower timer instead of the main `refreshTimer`.
+- [FIX] Temperature sensors are re-registered under a fresh HomeKit identity (one-time). Eve keys its history database on the accessory identity, and identities created with the old slashed serial numbers (`system/sensor`) were permanently ignored by Eve's graphing engine — Eve fetched the history data but never plotted it (verified live: complete E863F116/11C/117 handshake with valid records, empty graph; re-registering the accessory fixed it instantly). **Existing installs: temperature sensors will reappear as new accessories in HomeKit and must be re-assigned to their rooms once.**
+- [FIX] fakegato history files are keyed on the sensor serial number instead of the display name — several Homiris detectors can share a label (e.g. two doors named "Entrée"), which made their history files overwrite each other.
+- [CHANGE] Information Service cleanup on temperature sensors: slash-free serial number and manufacturer (`/` breaks Eve history rendering, per the fakegato documentation), and `FirmwareRevision` now reports the plugin version instead of `0`.
+- [CHANGE] Config schema: numeric fields use `type: number` instead of `integer` (the Homebridge UI rendered `integer` + min/max as an imprecise slider), `refreshTimer` and `refreshTimerTemperature` document the 0-to-disable behavior.
+- [NEW] Runtime dependency on `fakegato-history` (^0.6.7) — the plugin's only dependency.
+
 ## 0.3.11
 
 - [FIX] Transparent re-authentication on `401 Invalid Credentials` (WSO2 code `900901`) — when the OAuth `access_token` is invalidated server-side before its expected expiration (e.g. `getTemperature` failing with `<ams:code>900901</ams:code>`), `_apiCall()` now refreshes the token and replays the request once, in addition to the existing `403 SESSION_EXPIREE` handling.

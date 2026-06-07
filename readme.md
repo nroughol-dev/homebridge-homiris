@@ -8,6 +8,12 @@ Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-se
 
 ## What's new
 
+### 0.4.0
+
+- **Eve temperature history** (optional, `eveHistory`) — temperature sensors get a `fakegato-history` service so the Eve app renders graphs, min/max and weekly summaries. One entry every 10 minutes. Apple Home is unaffected.
+- **Dedicated temperature polling** (`refreshTimerTemperature`, default 2h) — matches the official app's sampling rate instead of hammering the API on the main refresh timer.
+- ⚠️ **Temperature sensors are re-created once** under a fresh HomeKit identity (required for Eve to plot history — identities with the old slashed serial numbers are permanently ignored by Eve's graphing engine). Re-assign them to their rooms after updating.
+
 ### 0.3.10
 
 - Verified by Homebridge
@@ -69,17 +75,19 @@ Or search for `homebridge-homiris` in the Homebridge UI plugins tab.
 
 ### Fields
 
-| Field                         | Required | Default     | Description                                                                        |
-| ----------------------------- | -------- | ----------- | ---------------------------------------------------------------------------------- |
-| `platform`                    | Yes      |             | Must be `"SepsadSecurity"`                                                         |
-| `login`                       | Yes      |             | Your Homiris/Sepsad account login                                                  |
-| `password`                    | Yes      |             | Your Homiris/Sepsad account password                                               |
-| `originSession`               | No       | `"HOMIRIS"` | `"HOMIRIS"`, `"SEPSAD"`, or `"EPS"` depending on your system brand                 |
-| `allowActivation`             | No       | `false`     | Set to `true` to allow arming the system via HomeKit                               |
-| `refreshTimer`                | No       | disabled    | Refresh alarm state every X seconds (120--3600). Leave empty to disable            |
-| `maxWaitTimeForOperation`     | No       | `30`        | Max seconds to wait for an arm operation to complete (30--90)                      |
-| `refreshTimerDuringOperation` | No       | `10`        | Polling interval in seconds while an arm operation is in progress (2--15)          |
-| `cleanCache`                  | No       | `false`     | Set to `true` to remove cached accessories on next restart, then remove the option |
+| Field                         | Required | Default     | Description                                                                                                                                   |
+| ----------------------------- | -------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `platform`                    | Yes      |             | Must be `"SepsadSecurity"`                                                                                                                    |
+| `login`                       | Yes      |             | Your Homiris/Sepsad account login                                                                                                             |
+| `password`                    | Yes      |             | Your Homiris/Sepsad account password                                                                                                          |
+| `originSession`               | No       | `"HOMIRIS"` | `"HOMIRIS"`, `"SEPSAD"`, or `"EPS"` depending on your system brand                                                                            |
+| `allowActivation`             | No       | `false`     | Set to `true` to allow arming the system via HomeKit                                                                                          |
+| `refreshTimer`                | No       | `300`       | Refresh alarm and smoke sensor states every X seconds (120--3600). Set to `0` to disable                                                      |
+| `refreshTimerTemperature`     | No       | `7200`      | Refresh temperature sensors every X seconds (1800--86400). Homiris only samples every 2h. Set to `0` to disable                               |
+| `eveHistory`                  | No       | `false`     | Expose temperature sensors with a `fakegato-history` service so the Eve app shows graphs and min/max (experimental). Apple Home is unaffected |
+| `maxWaitTimeForOperation`     | No       | `30`        | Max seconds to wait for an arm operation to complete (30--90)                                                                                 |
+| `refreshTimerDuringOperation` | No       | `10`        | Polling interval in seconds while an arm operation is in progress (2--15)                                                                     |
+| `cleanCache`                  | No       | `false`     | Set to `true` to remove cached accessories on next restart, then remove the option                                                            |
 
 ### Migrating from homebridge-sepsadsecurity
 

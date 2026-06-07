@@ -1,6 +1,6 @@
 {
   "name": "homebridge-homiris",
-  "version": "0.3.11",
+  "version": "0.4.0",
   "author": "Nicolas Roughol",
   "description": "Homebridge plugin for Homiris / Sepsad / EPS alarm systems",
   "main": "index.js",
@@ -25,7 +25,9 @@
     "EPS",
     "homekit"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "fakegato-history": "^0.6.7"
+  },
   "bugs": {
     "url": "https://github.com/nroughol-dev/homebridge-homiris/issues"
   },

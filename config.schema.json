@@ -27,9 +27,9 @@
         "type": "string",
         "default": "HOMIRIS",
         "oneOf": [
-          { "title": "Homiris", "enum": ["HOMIRIS"] },
-          { "title": "Sepsad", "enum": ["SEPSAD"] },
-          { "title": "EPS", "enum": ["EPS"] }
+          {"title": "Homiris", "enum": ["HOMIRIS"]},
+          {"title": "Sepsad", "enum": ["SEPSAD"]},
+          {"title": "EPS", "enum": ["EPS"]}
         ]
       },
       "allowActivation": {
@@ -39,14 +39,29 @@
       },
       "refreshTimer": {
         "title": "Refresh timer (seconds)",
-        "type": "integer",
-        "minimum": 120,
+        "type": "number",
+        "default": 300,
+        "minimum": 0,
         "maximum": 3600,
-        "description": "Refresh alarm state every X seconds. Leave empty to disable. Minimum 120s to avoid rate limiting by Homiris servers."
+        "description": "Refresh alarm and smoke sensor states every X seconds (120-3600, default 300). Set to 0 to disable background polling (state will only refresh when the Home app is opened). Minimum 120s to avoid rate limiting by Homiris servers."
+      },
+      "eveHistory": {
+        "title": "Enable Eve temperature history (experimental)",
+        "type": "boolean",
+        "default": false,
+        "description": "Expose temperature sensors with a fakegato-history service so the Eve app can render graphs, min/max and weekly summaries. Apple Home is unaffected."
+      },
+      "refreshTimerTemperature": {
+        "title": "Temperature refresh timer (seconds)",
+        "type": "number",
+        "default": 7200,
+        "minimum": 0,
+        "maximum": 86400,
+        "description": "Refresh temperature sensors every X seconds (1800-86400, default 7200). The official Homiris app only samples temperature every 2 hours; polling faster increases the risk of API rate limiting. Temperature is also refreshed on demand when the Home app reads the sensors. Set to 0 to disable."
       },
       "maxWaitTimeForOperation": {
         "title": "Maximum wait time during operation",
-        "type": "integer",
+        "type": "number",
         "default": 30,
         "minimum": 30,
         "maximum": 90,
@@ -54,7 +69,7 @@
       },
       "refreshTimerDuringOperation": {
         "title": "Refresh timer during operation",
-        "type": "integer",
+        "type": "number",
         "default": 10,
         "minimum": 2,
         "maximum": 15,
