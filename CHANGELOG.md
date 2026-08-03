@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- [FIX] `refreshTimerDuringOperation` now advertises its real default of `5` seconds. The Homebridge UI schema and the README both claimed `10`, so a config created through the UI polled every 10s while a config omitting the option polled every 5s. Existing configs with an explicit value are unaffected.
+
 ## 0.4.4 — Eve temperature history
 
 Published as 0.4.4: versions 0.4.0 through 0.4.3 were published to npm by accident on 2026-05-09 and unpublished the same day, and npm permanently reserves published version numbers.
