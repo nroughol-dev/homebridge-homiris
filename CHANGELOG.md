@@ -2,9 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.4.5 — Polling defaults and config drift guard
 
-- [FIX] `refreshTimerDuringOperation` now advertises its real default of `5` seconds. The Homebridge UI schema and the README both claimed `10`, so a config created through the UI polled every 10s while a config omitting the option polled every 5s. Existing configs with an explicit value are unaffected.
+- [FIX] `refreshTimerDuringOperation` is now `10` seconds everywhere. The code default was `5` while the Homebridge UI schema and the README claimed `10`, so a config omitting the option polled twice as fast as the documentation promised. The mismatch is resolved upward, on purpose: this timer is the fastest the plugin ever polls Homiris, and the interval it drives only stops on a successful poll, so it keeps running for as long as the API stays down. Existing configs with an explicit value are unaffected.
+- [NEW] `homirisConfigDefaults.js` holds every numeric option's default and bounds, and `npm test` now runs `checkConfigSchema.js`, which fails when the defaults table, `config.schema.json` and the README field table disagree, or when an option read from the config has no field in the UI form. Both defaults that drifted so far (`maxWaitTimeForOperation` in 0.4.4, `refreshTimerDuringOperation` above) would have been caught at commit time.
+- [FIX] `cleanCache` is exposed in the Homebridge UI settings form. It was documented in the README and honored by the plugin, but had no field in `config.schema.json` — so it could only be set from the JSON editor, and saving the settings form afterwards dropped it again.
+- [CHANGE] A `refreshTimer` / `refreshTimerTemperature` / `refreshTimerDuringOperation` / `maxWaitTimeForOperation` value outside its allowed range is now logged as a warning at startup instead of being silently replaced by the default. The UI form cannot express "0 or 120 to 3600", so out-of-band values are accepted by the form and rejected by the plugin; the log now says so.
 
 ## 0.4.4 — Eve temperature history
 

@@ -86,7 +86,7 @@ Or search for `homebridge-homiris` in the Homebridge UI plugins tab.
 | `refreshTimerTemperature`     | No       | `7200`      | Refresh temperature sensors every X seconds (1800--86400). Homiris only samples every 2h. Set to `0` to disable                               |
 | `eveHistory`                  | No       | `false`     | Expose temperature sensors with a `fakegato-history` service so the Eve app shows graphs and min/max (experimental). Apple Home is unaffected |
 | `maxWaitTimeForOperation`     | No       | `30`        | Max seconds to wait for an arm operation to complete (30--90)                                                                                 |
-| `refreshTimerDuringOperation` | No       | `5`         | Polling interval in seconds while an arm operation is in progress (2--15)                                                                     |
+| `refreshTimerDuringOperation` | No       | `10`        | Polling interval in seconds while an arm operation is in progress (2--15). The fastest the plugin ever polls Homiris                          |
 | `cleanCache`                  | No       | `false`     | Set to `true` to remove cached accessories on next restart, then remove the option                                                            |
 
 ### Migrating from homebridge-sepsadsecurity

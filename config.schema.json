@@ -43,7 +43,7 @@
         "default": 300,
         "minimum": 0,
         "maximum": 3600,
-        "description": "Refresh alarm and smoke sensor states every X seconds (120-3600, default 300). Set to 0 to disable background polling (state will only refresh when the Home app is opened). Minimum 120s to avoid rate limiting by Homiris servers."
+        "description": "Refresh alarm and smoke sensor states every X seconds (120-3600, default 300). Set to 0 to disable background polling (state will only refresh when the Home app is opened). Minimum 120s to avoid rate limiting by Homiris servers: any other value below 120 is refused at startup, logged as a warning, and replaced by 300."
       },
       "eveHistory": {
         "title": "Enable Eve temperature history (experimental)",
@@ -57,7 +57,7 @@
         "default": 7200,
         "minimum": 0,
         "maximum": 86400,
-        "description": "Refresh temperature sensors every X seconds (1800-86400, default 7200). The official Homiris app only samples temperature every 2 hours; polling faster increases the risk of API rate limiting. Temperature is also refreshed on demand when the Home app reads the sensors. Set to 0 to disable."
+        "description": "Refresh temperature sensors every X seconds (1800-86400, default 7200). The official Homiris app only samples temperature every 2 hours; polling faster increases the risk of API rate limiting, so any other value below 1800 is refused at startup, logged as a warning, and replaced by 7200. Temperature is also refreshed on demand when the Home app reads the sensors. Set to 0 to disable."
       },
       "maxWaitTimeForOperation": {
         "title": "Maximum wait time during operation",
@@ -70,10 +70,16 @@
       "refreshTimerDuringOperation": {
         "title": "Refresh timer during operation",
         "type": "number",
-        "default": 5,
+        "default": 10,
         "minimum": 2,
         "maximum": 15,
-        "description": "Set the refresh timer during operation in progress to detect the end of the operation."
+        "description": "Set the refresh timer during operation in progress to detect the end of the operation (2-15, default 10). This is the fastest the plugin ever polls Homiris, so keep it as high as your patience allows."
+      },
+      "cleanCache": {
+        "title": "Remove cached accessories on next restart",
+        "type": "boolean",
+        "default": false,
+        "description": "Set to true and restart Homebridge to drop every accessory this plugin cached, then set it back to false. Use it when accessories are duplicated or left over from a previous version."
       }
     }
   },

@@ -3,6 +3,7 @@ var Service, Characteristic, Accessory, UUIDGen, FakeGatoHistoryService;
 var HomirisAPI = require('./homirisAPI.js').HomirisAPI;
 const HomirisTools = require('./homirisTools.js');
 const HomirisConst = require('./homirisConst');
+const CONFIG_DEFAULTS = require('./homirisConfigDefaults.js');
 const os = require('os');
 const PLUGIN_VERSION = require('./package.json').version;
 
@@ -17,31 +18,20 @@ function myHomirisPlatform(log, config, api) {
   this.login = config['login'];
   this.password = config['password'];
 
+  //every default and bound below comes from homirisConfigDefaults.js - never inline a
+  //number here, config.schema.json and the readme restate them and npm test compares
+  let bounds = HomirisTools.boundsChecker(CONFIG_DEFAULTS, log);
+
   //background polling enabled by default (300s), set refreshTimer to 0 to disable
-  this.refreshTimer =
-    config['refreshTimer'] === 0
-      ? 0
-      : HomirisTools.checkParameter(config['refreshTimer'], 120, 3600, 300);
+  this.refreshTimer = config['refreshTimer'] === 0 ? 0 : bounds('refreshTimer', config);
 
   //temperature sensors background polling - the official Homiris app only samples
   //every 2 hours, so poll on a dedicated, much slower timer (default 7200s, 0 to disable)
   this.refreshTimerTemperature =
-    config['refreshTimerTemperature'] === 0
-      ? 0
-      : HomirisTools.checkParameter(config['refreshTimerTemperature'], 1800, 86400, 7200);
+    config['refreshTimerTemperature'] === 0 ? 0 : bounds('refreshTimerTemperature', config);
 
-  this.refreshTimerDuringOperation = HomirisTools.checkParameter(
-    config['refreshTimerDuringOperation'],
-    2,
-    15,
-    5
-  );
-  this.maxWaitTimeForOperation = HomirisTools.checkParameter(
-    config['maxWaitTimeForOperation'],
-    30,
-    90,
-    30
-  );
+  this.refreshTimerDuringOperation = bounds('refreshTimerDuringOperation', config);
+  this.maxWaitTimeForOperation = bounds('maxWaitTimeForOperation', config);
   this.originSession = config['originSession'] || 'HOMIRIS';
 
   this.allowActivation = HomirisTools.checkBoolParameter(config['allowActivation'], false);
