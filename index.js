@@ -266,7 +266,8 @@ myHomirisPlatform.prototype = {
 
   createSmokeSensorsAccessories() {
     if (this.homirisAPI.securitySystem.fire) {
-      let smokeDetectors = this.homirisAPI.securitySystem.fire.smokeDetectors;
+      // The API returns null, not [], when the system has no smoke detector (issue #1).
+      let smokeDetectors = this.homirisAPI.securitySystem.fire.smokeDetectors || [];
 
       for (let a = 0; a < smokeDetectors.length; a++) {
         let smokeSensorName = smokeDetectors[a].label;
@@ -540,7 +541,7 @@ myHomirisPlatform.prototype = {
         this.log.debug('INFO - refreshing smokeSensor - ' + this.foundAccessories[a].name);
 
         let smokeResults = this.homirisAPI.securitySystem.fire;
-        if (smokeResults !== undefined) {
+        if (smokeResults) {
           this.refreshSmokeSensor(this.foundAccessories[a], smokeResults);
         } else {
           this.log(
@@ -989,9 +990,11 @@ myHomirisPlatform.prototype = {
 
     var newSmokeStatus = undefined;
 
-    for (let a = 0; a < result.smokeDetectors.length; a++) {
-      if (result.smokeDetectors[a].id == mySmokeAccessory.smokeSensorID) {
-        newSmokeStatus = result.smokeDetectors[a].status != null;
+    let smokeDetectors = result.smokeDetectors || [];
+
+    for (let a = 0; a < smokeDetectors.length; a++) {
+      if (smokeDetectors[a].id == mySmokeAccessory.smokeSensorID) {
+        newSmokeStatus = smokeDetectors[a].status != null;
         break;
       }
     }

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.6 — Systems without smoke detectors
+
+- [FIX] Accessory discovery no longer crashes on a system that has no smoke detector. Homiris returns `"smokeDetectors": null` rather than an empty list when the alarm has none, and `createSmokeSensorsAccessories()` read `.length` straight off it. The exception was swallowed by the API error handler (logged as `ERROR - getSecuritySystem: Cannot read properties of null (reading 'length')`) and aborted `loadSecuritySystem()` halfway through: the alarm accessory was created, but `refreshBackground()` never started, so the plugin never polled the alarm again, never requested temperature, and never ran `cleanPlatform()`. Reported and diagnosed by [@urluba](https://github.com/urluba) in [#1](https://github.com/nroughol-dev/homebridge-homiris/issues/1).
+- [FIX] The background smoke refresh tested `fire !== undefined`, which a `null` passes — a system reporting `"fire": null` would have hit the same crash on every poll instead of at startup. It now tests for a usable object.
+- [FIX] `refreshSmokeSensor()` iterates over `result.smokeDetectors` defensively, so a detector removed from the account between two polls cannot crash a cached accessory's refresh.
+
 ## 0.4.5 — Polling defaults and config drift guard
 
 - [FIX] `refreshTimerDuringOperation` is now `10` seconds everywhere. The code default was `5` while the Homebridge UI schema and the README claimed `10`, so a config omitting the option polled twice as fast as the documentation promised. The mismatch is resolved upward, on purpose: this timer is the fastest the plugin ever polls Homiris, and the interval it drives only stops on a successful poll, so it keeps running for as long as the API stays down. Existing configs with an explicit value are unaffected.
