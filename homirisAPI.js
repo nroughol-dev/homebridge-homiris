@@ -1,5 +1,10 @@
 const EventEmitter = require('events');
 
+// Consecutive failed API responses before the plugin gives up on its session and
+// re-authenticates. At the 120s poll floor that is one forced re-auth per ~6min of
+// outage, instead of one per poll.
+const FAILURES_BEFORE_REAUTH = 3;
+
 class HomirisAPI extends EventEmitter {
   constructor(log, platform) {
     super();
@@ -10,6 +15,7 @@ class HomirisAPI extends EventEmitter {
     this.originSession = platform.originSession;
     this.securitySystem = {};
     this._authPromise = null;
+    this._consecutiveApiFailures = 0;
 
     this.apiURL = 'https://y41hsspp-mobile.eps-api.com/';
 
@@ -41,6 +47,42 @@ class HomirisAPI extends EventEmitter {
   disconnect() {
     this.access_token = undefined;
     this.loginExpires = undefined;
+  }
+
+  // The WSO2 gateway in front of the Homiris API trips its circuit breaker every so
+  // often (5xx with fault code 303001, 'endpoint SUSPENDED'): isolated blips that clear
+  // by themselves within a poll or two. Callers that are only polling pass transient so
+  // those show up as warnings. Arming never does: a refused askstart leaves the house
+  // unarmed, which the user has to see at ERROR level whatever the status code.
+  _logHttpFailure(label, status, body, transient) {
+    var message = label + ' response (' + status + '): ' + body;
+    if (transient && status >= 500) this.log.warn('WARN - ' + message);
+    else this.log('ERROR - ' + message);
+  }
+
+  // idSession is only ever renewed by dropping the token, and _apiCall() self-heals just
+  // two shapes (403 SESSION_EXPIREE, 401 900901). Any other status carrying a session the
+  // gateway no longer accepts used to be cleared by disconnecting on every failed poll -
+  // but that cost three requests per poll (token + connect + homepage) instead of one for
+  // the whole length of an outage. Waiting for a few consecutive failures keeps the
+  // recovery automatic while capping the extra auth traffic.
+  _noteApiFailure(status) {
+    if (status === 401 || status === 403) {
+      this._consecutiveApiFailures = 0;
+      this.disconnect();
+      return;
+    }
+
+    this._consecutiveApiFailures++;
+    if (this._consecutiveApiFailures >= FAILURES_BEFORE_REAUTH) {
+      this.log.debug(
+        'INFO - ' +
+          this._consecutiveApiFailures +
+          ' consecutive API failures, dropping the session to force a re-auth'
+      );
+      this._consecutiveApiFailures = 0;
+      this.disconnect();
+    }
   }
 
   async authenticate() {
@@ -75,7 +117,7 @@ class HomirisAPI extends EventEmitter {
       var body = await tokenResponse.text().catch(function () {
         return '';
       });
-      this.log('ERROR - token response (' + tokenResponse.status + '): ' + body);
+      this._logHttpFailure('token', tokenResponse.status, body, true);
       throw new Error('Token request failed');
     }
 
@@ -114,7 +156,7 @@ class HomirisAPI extends EventEmitter {
       var body = await connectResponse.text().catch(function () {
         return '';
       });
-      this.log('ERROR - connect response (' + connectResponse.status + '): ' + body);
+      this._logHttpFailure('connect', connectResponse.status, body, true);
       this.disconnect();
       throw new Error('Connect request failed');
     }
@@ -197,12 +239,13 @@ class HomirisAPI extends EventEmitter {
         var body = await response.text().catch(function () {
           return '';
         });
-        this.log('ERROR - status response (' + response.status + '): ' + body);
-        this.disconnect();
+        this._logHttpFailure('status', response.status, body, true);
+        this._noteApiFailure(response.status);
         this.emit('securitySystemRefreshError');
         return;
       }
 
+      this._consecutiveApiFailures = 0;
       var body = await response.json();
       this.log.debug('INFO - status body: ' + JSON.stringify(body));
 
@@ -232,12 +275,13 @@ class HomirisAPI extends EventEmitter {
         var body = await response.text().catch(function () {
           return '';
         });
-        this.log('ERROR - getTemperature response (' + response.status + '): ' + body);
-        this.disconnect();
+        this._logHttpFailure('getTemperature', response.status, body, true);
+        this._noteApiFailure(response.status);
         this.emit('securitySystemTemperatureRefreshError');
         return;
       }
 
+      this._consecutiveApiFailures = 0;
       var body = await response.json();
       this.log.debug('INFO - temperature body: ' + JSON.stringify(body));
 
@@ -282,7 +326,7 @@ class HomirisAPI extends EventEmitter {
       var body = await response.text().catch(function () {
         return '';
       });
-      this.log('ERROR - activateSecuritySystem response (' + response.status + '): ' + body);
+      this._logHttpFailure('activateSecuritySystem', response.status, body);
       throw new Error('Activate failed');
     }
 

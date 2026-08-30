@@ -341,149 +341,152 @@ myHomirisPlatform.prototype = {
   },
 
   createTemperatureSensorsAccessories() {
-    if (this.homirisAPI.securitySystem.temperatureInfo) {
-      let tempSensors = this.homirisAPI.securitySystem.temperatureInfo;
-      for (let a = 0; a < tempSensors.length; a++) {
-        let tempSensorName = tempSensors[a].label;
-        let tempSensorModel = this.homirisAPI.securitySystem.model;
-        let tempSensorSeriaNumber = this.homirisAPI.securitySystem.id + '/' + tempSensors[a].id;
+    // The API returns statements: null, not [], when it has nothing to report - the same
+    // shape as fire.smokeDetectors. Normalise it instead of guarding the whole function:
+    // the tail below owns tempLoaded, the cleanPlatform() that loadSecuritySystem()
+    // delegates on this branch, and the background timer, and nothing else ever
+    // re-triggers a temperature poll if they are skipped.
+    let tempSensors = this.homirisAPI.securitySystem.temperatureInfo || [];
+    for (let a = 0; a < tempSensors.length; a++) {
+      let tempSensorName = tempSensors[a].label;
+      let tempSensorModel = this.homirisAPI.securitySystem.model;
+      let tempSensorSeriaNumber = this.homirisAPI.securitySystem.id + '/' + tempSensors[a].id;
 
-        this.log('INFO - Discovered TemperatureSensor : ' + tempSensorName);
+      this.log('INFO - Discovered TemperatureSensor : ' + tempSensorName);
 
-        // ':eve2' bumps the accessory UUID so existing installs re-register the
-        // sensor under a fresh HomeKit aid. Eve keys its history database on the
-        // accessory identity, and identities created before v0.4.0 (slashed
-        // serial numbers) are permanently ignored by Eve's graphing engine even
-        // though it fetches the data (verified live: full E863F116/11C/117
-        // handshake with valid records, yet empty graph; re-registering the
-        // accessory under a new aid fixed it instantly).
-        // One-time cost: the sensor reappears in HomeKit and must be re-assigned
-        // to its room.
-        let uuid = UUIDGen.generate(tempSensorName + tempSensorSeriaNumber + ':eve2');
+      // ':eve2' bumps the accessory UUID so existing installs re-register the
+      // sensor under a fresh HomeKit aid. Eve keys its history database on the
+      // accessory identity, and identities created before v0.4.0 (slashed
+      // serial numbers) are permanently ignored by Eve's graphing engine even
+      // though it fetches the data (verified live: full E863F116/11C/117
+      // handshake with valid records, yet empty graph; re-registering the
+      // accessory under a new aid fixed it instantly).
+      // One-time cost: the sensor reappears in HomeKit and must be re-assigned
+      // to its room.
+      let uuid = UUIDGen.generate(tempSensorName + tempSensorSeriaNumber + ':eve2');
 
-        let myTempSensorAccessory = this.foundAccessories.find((x) => x.UUID == uuid);
+      let myTempSensorAccessory = this.foundAccessories.find((x) => x.UUID == uuid);
 
-        // fakegato-history docs warn that '/' in any Information Service characteristic
-        // (manufacturer, model, serial) can prevent Eve from rendering history. Keep the
-        // original tempSensorSeriaNumber for UUID stability (existing installs), but
-        // expose slash-free variants on the Information Service characteristics.
-        let tempSensorSerialDisplay = tempSensorSeriaNumber.replace(/\//g, '-');
-        let tempSensorManufacturerDisplay = 'Homiris-Sepsad-EPS';
+      // fakegato-history docs warn that '/' in any Information Service characteristic
+      // (manufacturer, model, serial) can prevent Eve from rendering history. Keep the
+      // original tempSensorSeriaNumber for UUID stability (existing installs), but
+      // expose slash-free variants on the Information Service characteristics.
+      let tempSensorSerialDisplay = tempSensorSeriaNumber.replace(/\//g, '-');
+      let tempSensorManufacturerDisplay = 'Homiris-Sepsad-EPS';
 
-        if (!myTempSensorAccessory) {
-          myTempSensorAccessory = new Accessory(tempSensorName, uuid);
-          myTempSensorAccessory.name = tempSensorName;
-          myTempSensorAccessory.model = tempSensorModel;
-          myTempSensorAccessory.manufacturer = tempSensorManufacturerDisplay;
-          myTempSensorAccessory.serialNumber = tempSensorSerialDisplay;
-          myTempSensorAccessory.tempSensorID = tempSensors[a].id;
-
-          myTempSensorAccessory
-            .getService(Service.AccessoryInformation)
-            .setCharacteristic(Characteristic.Manufacturer, myTempSensorAccessory.manufacturer)
-            .setCharacteristic(Characteristic.Model, myTempSensorAccessory.model)
-            .setCharacteristic(Characteristic.SerialNumber, myTempSensorAccessory.serialNumber)
-            .setCharacteristic(Characteristic.FirmwareRevision, PLUGIN_VERSION);
-
-          this.api.registerPlatformAccessories('homebridge-homiris', 'SepsadSecurity', [
-            myTempSensorAccessory,
-          ]);
-
-          this.foundAccessories.push(myTempSensorAccessory);
-        } else {
-          // Refresh cached info service in case a previous version wrote slashed values.
-          myTempSensorAccessory.manufacturer = tempSensorManufacturerDisplay;
-          myTempSensorAccessory.serialNumber = tempSensorSerialDisplay;
-          myTempSensorAccessory
-            .getService(Service.AccessoryInformation)
-            .setCharacteristic(Characteristic.Manufacturer, tempSensorManufacturerDisplay)
-            .setCharacteristic(Characteristic.SerialNumber, tempSensorSerialDisplay)
-            .setCharacteristic(Characteristic.FirmwareRevision, PLUGIN_VERSION);
-        }
-
-        myTempSensorAccessory.tempSensorID = tempSensors[a].id;
+      if (!myTempSensorAccessory) {
+        myTempSensorAccessory = new Accessory(tempSensorName, uuid);
         myTempSensorAccessory.name = tempSensorName;
-        myTempSensorAccessory.log = this.log;
+        myTempSensorAccessory.model = tempSensorModel;
+        myTempSensorAccessory.manufacturer = tempSensorManufacturerDisplay;
+        myTempSensorAccessory.serialNumber = tempSensorSerialDisplay;
+        myTempSensorAccessory.tempSensorID = tempSensors[a].id;
 
-        let HKTempSensorService = myTempSensorAccessory.getServiceById(
-          Service.TemperatureSensor,
-          'TempSensorService' + tempSensorName
-        );
+        myTempSensorAccessory
+          .getService(Service.AccessoryInformation)
+          .setCharacteristic(Characteristic.Manufacturer, myTempSensorAccessory.manufacturer)
+          .setCharacteristic(Characteristic.Model, myTempSensorAccessory.model)
+          .setCharacteristic(Characteristic.SerialNumber, myTempSensorAccessory.serialNumber)
+          .setCharacteristic(Characteristic.FirmwareRevision, PLUGIN_VERSION);
 
-        if (!HKTempSensorService) {
-          this.log('INFO - Creating TempSensor Service ' + tempSensorName);
-          HKTempSensorService = new Service.TemperatureSensor(
-            tempSensorName,
-            'TempSensorService' + tempSensorName
-          );
-          HKTempSensorService.subtype = 'TempSensorService' + tempSensorName;
-          myTempSensorAccessory.addService(HKTempSensorService);
-        }
+        this.api.registerPlatformAccessories('homebridge-homiris', 'SepsadSecurity', [
+          myTempSensorAccessory,
+        ]);
 
-        this.bindCurrentTemperatureCharacteristic(HKTempSensorService);
-
-        if (this.eveHistory) {
-          // Eve history via fakegato-history, modeled after homebridge-weather-plus:
-          // - type 'custom' derives the history signature from the characteristics
-          //   actually present on the accessory (here CurrentTemperature only), so no
-          //   foreign characteristic has to be added to the standard TemperatureSensor
-          //   service. Apple's strict HAP validation rejected the whole bridge when a
-          //   previous attempt added TemperatureDisplayUnits (type 'weather' requirement).
-          // - the embedded fakegato timer stays ENABLED: it posts an (averaged or
-          //   repeated) entry every 10 minutes, which Eve requires to draw a continuous
-          //   curve, even though we only poll the Homiris API every refreshTimerTemperature.
-          // The history service must be created AFTER the TemperatureSensor service
-          // exists, since 'custom' scans the accessory services at construction time.
-          if (!myTempSensorAccessory.loggingService) {
-            myTempSensorAccessory.loggingService = new FakeGatoHistoryService(
-              'custom',
-              myTempSensorAccessory,
-              {
-                storage: 'fs',
-                // fakegato's default filename is <hostname>_<displayName>: several
-                // Homiris detectors can share a label (e.g. multiple 'Entrée'),
-                // which made their histories overwrite each other. Key the file on
-                // the unique serial instead, keeping the hostname prefix so test
-                // and production environments don't clash.
-                filename:
-                  os.hostname().split('.')[0] + '_' + tempSensorSerialDisplay + '_persist.json',
-              }
-            );
-          }
-          // fakegato attaches its own service onto the platform accessory: confirm THAT
-          // service, otherwise cleanServices strips it at startup and addEntry writes
-          // into a detached object Eve never sees.
-          if (myTempSensorAccessory.loggingService.service) {
-            this._confirmedServices.push(myTempSensorAccessory.loggingService.service);
-          }
-        }
-
-        this._confirmedAccessories.push(myTempSensorAccessory);
-        this._confirmedServices.push(HKTempSensorService);
-
-        //this.bindTempStatusActiveCharacteristic(HKTempSensorService);
-        //this.bindTempStatusLowBatteryCharacteristic(HKTempSensorService);
-        //this.bindTempStatusFaultCharacteristic(HKTempSensorService);
-
-        // Required Characteristics
-        //this.addCharacteristic(Characteristic.CurrentTemperature);
-
-        // Optional Characteristics
-        //this.addOptionalCharacteristic(Characteristic.StatusActive);
-        //this.addOptionalCharacteristic(Characteristic.StatusFault);
-        //this.addOptionalCharacteristic(Characteristic.StatusLowBattery);
-        //this.addOptionalCharacteristic(Characteristic.StatusTampered);
-        //this.addOptionalCharacteristic(Characteristic.Name);
+        this.foundAccessories.push(myTempSensorAccessory);
+      } else {
+        // Refresh cached info service in case a previous version wrote slashed values.
+        myTempSensorAccessory.manufacturer = tempSensorManufacturerDisplay;
+        myTempSensorAccessory.serialNumber = tempSensorSerialDisplay;
+        myTempSensorAccessory
+          .getService(Service.AccessoryInformation)
+          .setCharacteristic(Characteristic.Manufacturer, tempSensorManufacturerDisplay)
+          .setCharacteristic(Characteristic.SerialNumber, tempSensorSerialDisplay)
+          .setCharacteristic(Characteristic.FirmwareRevision, PLUGIN_VERSION);
       }
 
-      this.tempLoaded = true;
+      myTempSensorAccessory.tempSensorID = tempSensors[a].id;
+      myTempSensorAccessory.name = tempSensorName;
+      myTempSensorAccessory.log = this.log;
 
-      this.cleanPlatform();
-      this.updateTemperature();
+      let HKTempSensorService = myTempSensorAccessory.getServiceById(
+        Service.TemperatureSensor,
+        'TempSensorService' + tempSensorName
+      );
 
-      //timer for temperature background refresh
-      this.refreshTemperatureBackground();
+      if (!HKTempSensorService) {
+        this.log('INFO - Creating TempSensor Service ' + tempSensorName);
+        HKTempSensorService = new Service.TemperatureSensor(
+          tempSensorName,
+          'TempSensorService' + tempSensorName
+        );
+        HKTempSensorService.subtype = 'TempSensorService' + tempSensorName;
+        myTempSensorAccessory.addService(HKTempSensorService);
+      }
+
+      this.bindCurrentTemperatureCharacteristic(HKTempSensorService);
+
+      if (this.eveHistory) {
+        // Eve history via fakegato-history, modeled after homebridge-weather-plus:
+        // - type 'custom' derives the history signature from the characteristics
+        //   actually present on the accessory (here CurrentTemperature only), so no
+        //   foreign characteristic has to be added to the standard TemperatureSensor
+        //   service. Apple's strict HAP validation rejected the whole bridge when a
+        //   previous attempt added TemperatureDisplayUnits (type 'weather' requirement).
+        // - the embedded fakegato timer stays ENABLED: it posts an (averaged or
+        //   repeated) entry every 10 minutes, which Eve requires to draw a continuous
+        //   curve, even though we only poll the Homiris API every refreshTimerTemperature.
+        // The history service must be created AFTER the TemperatureSensor service
+        // exists, since 'custom' scans the accessory services at construction time.
+        if (!myTempSensorAccessory.loggingService) {
+          myTempSensorAccessory.loggingService = new FakeGatoHistoryService(
+            'custom',
+            myTempSensorAccessory,
+            {
+              storage: 'fs',
+              // fakegato's default filename is <hostname>_<displayName>: several
+              // Homiris detectors can share a label (e.g. multiple 'Entrée'),
+              // which made their histories overwrite each other. Key the file on
+              // the unique serial instead, keeping the hostname prefix so test
+              // and production environments don't clash.
+              filename:
+                os.hostname().split('.')[0] + '_' + tempSensorSerialDisplay + '_persist.json',
+            }
+          );
+        }
+        // fakegato attaches its own service onto the platform accessory: confirm THAT
+        // service, otherwise cleanServices strips it at startup and addEntry writes
+        // into a detached object Eve never sees.
+        if (myTempSensorAccessory.loggingService.service) {
+          this._confirmedServices.push(myTempSensorAccessory.loggingService.service);
+        }
+      }
+
+      this._confirmedAccessories.push(myTempSensorAccessory);
+      this._confirmedServices.push(HKTempSensorService);
+
+      //this.bindTempStatusActiveCharacteristic(HKTempSensorService);
+      //this.bindTempStatusLowBatteryCharacteristic(HKTempSensorService);
+      //this.bindTempStatusFaultCharacteristic(HKTempSensorService);
+
+      // Required Characteristics
+      //this.addCharacteristic(Characteristic.CurrentTemperature);
+
+      // Optional Characteristics
+      //this.addOptionalCharacteristic(Characteristic.StatusActive);
+      //this.addOptionalCharacteristic(Characteristic.StatusFault);
+      //this.addOptionalCharacteristic(Characteristic.StatusLowBattery);
+      //this.addOptionalCharacteristic(Characteristic.StatusTampered);
+      //this.addOptionalCharacteristic(Characteristic.Name);
     }
+
+    this.tempLoaded = true;
+
+    this.cleanPlatform();
+    this.updateTemperature();
+
+    //timer for temperature background refresh
+    this.refreshTemperatureBackground();
   },
 
   loadSecuritySystem() {

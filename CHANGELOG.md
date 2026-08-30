@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.7 — Gateway outages and log levels
+
+- [CHANGE] Transient HTTP 5xx from the API gateway are logged as warnings instead of errors. The WSO2 gateway in front of the Homiris API trips its circuit breaker every so often and answers `500` with fault code `303001` (`endpoint SUSPENDED`); measured on a live install, that is roughly one isolated poll per day out of ~720, cleared by itself before the next one. Arming keeps ERROR at every status code — a refused `askstart` means the alarm did not arm, whatever the cause.
+- [FIX] A failed poll no longer throws away a valid session. Any non-OK response used to drop the access token, so every poll during an outage cost three requests (`token` + `connect` + the poll itself) instead of one — against an API whose operator monitors polling rates. The session is now dropped immediately on `401`/`403`, and otherwise only after three consecutive failures, which keeps the automatic recovery from a session the gateway no longer accepts while capping the extra authentication traffic.
+- [FIX] Temperature sensor discovery survives `"statements": null`. Like `smokeDetectors` in 0.4.6, the API returns `null` rather than an empty list when it has nothing to report, and the whole of `createTemperatureSensorsAccessories()` was skipped: `cleanPlatform()` never ran, the temperature background timer never started, and nothing else would ever trigger another temperature poll, so temperature stayed dead until Homebridge restarted.
+
 ## 0.4.6 — Systems without smoke detectors
 
 - [FIX] Accessory discovery no longer crashes on a system that has no smoke detector. Homiris returns `"smokeDetectors": null` rather than an empty list when the alarm has none, and `createSmokeSensorsAccessories()` read `.length` straight off it. The exception was swallowed by the API error handler (logged as `ERROR - getSecuritySystem: Cannot read properties of null (reading 'length')`) and aborted `loadSecuritySystem()` halfway through: the alarm accessory was created, but `refreshBackground()` never started, so the plugin never polled the alarm again, never requested temperature, and never ran `cleanPlatform()`. Reported and diagnosed by [@urluba](https://github.com/urluba) in [#1](https://github.com/nroughol-dev/homebridge-homiris/issues/1).
