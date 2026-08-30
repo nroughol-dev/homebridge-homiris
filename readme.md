@@ -8,6 +8,22 @@ Forked from [homebridge-sepsadsecurity](https://github.com/nicoduj/homebridge-se
 
 ## What's new
 
+### 0.4.7
+
+- **Quieter logs during Homiris outages** — the API gateway briefly suspends its backend roughly once a day, answering `500` (`endpoint SUSPENDED`) for a single poll before recovering on its own. That is now logged as a warning instead of an error. A failed arming stays an error at every status code.
+- **Fewer requests while the API is down** — a failed poll no longer discards a valid session, so the plugin stops re-authenticating on every single poll for the whole length of an outage.
+- Fixed temperature discovery when the API reports no temperature data (the same "null instead of an empty list" shape as 0.4.6) — temperature polling and cache cleanup no longer stop silently at startup.
+
+### 0.4.6
+
+- **Fixed a crash on systems with no smoke detector** — the plugin created the alarm accessory and then stopped polling seconds after startup. Reported and diagnosed by [@urluba](https://github.com/urluba) in [#1](https://github.com/nroughol-dev/homebridge-homiris/issues/1).
+
+### 0.4.5
+
+- `refreshTimerDuringOperation` now defaults to `10` seconds everywhere — the code used `5` while the UI form and this readme said `10`.
+- `cleanCache` is available in the Homebridge UI settings form (it previously had to be set from the JSON editor, and was dropped again when the form was saved).
+- A timer value outside its allowed range is logged as a warning at startup instead of being silently replaced by the default.
+
 ### 0.4.4
 
 - **Eve temperature history** (optional, `eveHistory`) — temperature sensors get a `fakegato-history` service so the Eve app renders graphs, min/max and weekly summaries. One entry every 10 minutes. Apple Home is unaffected.
